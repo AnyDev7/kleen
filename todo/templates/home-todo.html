@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{title}}</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js" integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN" crossorigin="anonymous"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    
+    <style>
+        .form-control{
+        padding: 1.375rem .75rem !important; <!-- padding: 1.375rem .75rem !important; -->
+    }
+    </style>
+</head>
+
+<body style="background: #e0e0e0;">
+    <div class="container" style="background: #e0e0e0;">
+        <h4 class="pt-3 text-center">Mis pendientes | AP Equipos Integrados</h4>
+        <h7 class="pt-1 text-left">powered by ▲▼anyDev7 </h7>
+        <hr>
+        
+        <div class="row">
+            <h5> Mi Día <span class="text-muted fs-6">{% now "jS F Y"%}</span> {% if user.id is not None %} | ¡Bienvenido! {{user.first_name}} {%endif%}</h5> 
+            {% include "mainapp/includes/alerts.html" %}
+            <div class="col-md-7 col-lg-7" style="height: 350px; overflow: scroll;">
+                <!-- List of all the tasks for the day -->
+                {% for task in tasks  %}
+                    {% if task.is_completed == False %}
+                    <div class="card m-1" style="background: #f5f5f5;">
+                        <div class="card-body">                            
+                            {{task.name}} | {{task.deadline}}
+                            <span style="position: relative; float: right;">
+                                <a href= "{% url "done-task" task.id %}" class="btn btn-success"><i class="fa fa-check"></i> Hecho!</a>
+                                <a href=" {% url "delete-task" task.id %} " class="btn btn-danger"><i class="fa fa-trash"></i></a>
+                                <a href="{% url "edit-task" task.id %}" class="btn btn-primary"><i class="fa fa-pencil"></i> Cambiar</a>
+                            </span>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <div class="col-md-5 col-lg-5" style="height: 350px; overflow: scroll;">
+                <h5>Tareas realizadas</h5>
+                <!-- List of all the tasks that have completed -->
+                {% for task in tasks %}
+                    {% if task.is_completed %}
+                        <div class="card m-1" style="background: #f5f5f5;">
+                            <div class="card-body">
+                                {{task.name}} | {{task.updated_at}}
+                                <span style="position: relative; float: right;">
+                                    <a href= "{% url "undone-task" task.id %}" class="btn btn-warning"><i class="fa fa-times"></i> No hecho</a>
+                                </span>
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        <div class="row"> <!-- class="row" -->
+            <div class="col-md-10 col-lg-10 p-0" style="position: absolute; bottom: 30px;">
+
+                <!-- To Do Form -->
+                <!-- Si en la forma un solo boton, se usa 'action' -->
+                <!-- Si son varios botones, se usa 'href=""' en cada boton' -->
+                <form action="{% url "add-task" %}" method="POST">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <span style="display: flex;">
+                            <input name="name" type="text" required="True" class="form-control" placeholder="nombre de la tarea">
+                            <input name="task" type="text" required="True" class="form-control" placeholder="Tarea por hacer">
+                            <label for="deadline"style="display: block; padding:10px;" >Límite:</label>
+                            <input name="deadline" type="date" required="True" class="form-control">
+                            <button type="submit" class="btn btn-primary" style="width: 200px;"><i class="fa fa-plus"></i> Agregar </button>
+                        </span>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,227 @@
+{% extends "mainapp/layout.html" %}
+{% load static %}
+
+{% block content %}
+
+<section class="section-content padding-y bg" style="background: #e0e0e0">
+<div class="container">
+<!-- ============================ COMPONENT 1 ================================= -->
+<div class="row">    
+    <aside class="col-lg-6">
+    <div class="card">
+    <div class="card-body">
+    {% include "mainapp/includes/alerts.html" %}
+    <h5 class="card-tit mb-2">Revisa el envío y su costo</h5>
+    <hr>
+    <!-- <form action="{% url 'place_order' 
+     deliver order_note address.id %}" method="POST"> Esta linea va en el address_option == True -->
+    {% if address_option == True %} 
+    <form action="{% url 'place_order' delivery order_note address %}" method="POST">
+    {% else %}
+    <form action="{% url 'place_order' delivery order_note 0 %}" method="POST">
+    {% endif %}
+        {% csrf_token %}
+        {{ form.errors }}
+        {{ form.non_field_errors }}
+            
+            {% if address_option %}                
+                <!--Se quito div "form-row" y div "col form-group"-->    
+                <small><label>
+                    <span> <b> Enviar a domicilio </b></span>
+                    <p class="text-muted">{{address.address_line_1}}, {{address.address_line_2}}<br>
+                        {{address.city}}, {{address.state}}, {{address.country}} <br>
+                        CP {{address.zipcode}} Tel: {{address.phone}}
+                    </p>
+                </label></small>
+        
+            {% else %}
+                <label>
+                    <span> <b> Retira en nuestra tienda </b></span>
+                    <p class="text-muted">Reforma Norte 2006, Col. Los Reyes<br>
+                        Tel: 238 2408603 <br>
+                        Tehuacán, Puebla, México. CP 75720<br> 
+                    </p>
+                </label>
+            {% endif %} 
+            <div class="form-row">
+                <div class="col form-group">
+                    <small> <b>Observaciones del pedido:</b> 
+                    <label> "{{order_note}}" </label> </small> 
+                </div>
+                <div class="col form-group">
+                    <label> </label>
+                </div>
+            </div>
+        <!-- No estaba aqui el '</form>' -->
+    </div>
+    </div> <!-- card.// -->
+    <br>
+
+    <!--Card de opciones de envío-->
+    {% if address_option %}
+    <div class="card">
+        <div class="card-body">
+        <h5 class="card-tit mb-3">Opciones de envío:</h5>
+        <hr>
+        <div class="form-row">
+            <div class="col form-group">
+                <div class="form-check">
+                    <input value="45.00-Motoservicio" class="form-check-input" type="radio" name="shipment" checked>
+                    <label class="form-check-label" for="shipment">
+                        <span style="color: black;"> Envio por motoservicio     $45.00 </span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="col form-group">
+                <div class="form-check">
+                    <input value="89.00-PaqueteExpress" class="form-check-input" type="radio" name="shipment" >
+                    <label class="form-check-label" for="shipment">
+                        <span style="color: black;"> Envio por taxi    $89.00</span>
+                    </label>
+                </div> <!-- form-check-->
+            </div> <!-- form-group-->
+        </div>    
+        </div> <!-- card body-->
+    </div> <!-- card.// -->
+    {% else %}
+    <div class="card">
+        <div class="card-body">
+        <h5 class="card-tit mb-3">Retiro en nuestra tienda:</h5>
+        <hr>
+        <div class="form-row">
+            <div class="col form-group">
+                <div class="form-check">
+                    <input value="0-pickup" class="form-check-input" type="radio" name="shipment" checked>
+                        <label class="form-check-label" for="shipment">
+                        <span style="color: black;"> Sin costo $0.00 </span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group col-md-6">
+                <label for="">Instrucciones para retiro</label>
+                <textarea name="pickup_instructions" rows="2" cols="52" required></textarea>
+            </div>
+        </div>
+        </div> <!-- card body-->
+    </div> <!-- card.// -->
+
+    {% endif %}
+    </aside> <!-- col.// -->
+
+    <aside class="col-lg-6">
+
+            <div class="card">
+            <div class="card-body">
+
+                <table class="table table-borderless table-shopping-cart">
+                    <thead class="text-muted">
+                    <tr class="small text-uppercase">
+                    <th scope="col">Producto</th>
+                    <th scope="col" width="120">Cantidad</th>
+                    <th scope="col" width="120">Precio</th>
+                    <th scope="col" width="120">Importe</th>
+                    
+                    </tr>
+                    </thead>
+                    <tbody>
+                    
+                    {% for cart_item in cart_items %}
+                    <tr>    
+                        <td>
+                            <figure class="itemside align-items-center">
+                                <div class="aside"><img src="{{ cart_item.product.image1.url }}" class="img-sm"></div>
+                                <figcaption class="info">
+                                    <a href="{{ cart_item.product.get_url }}" class="title text-dark">{{cart_item.product.name}}</a>
+                                    <p class="text-muted small"><small>Marca: {{cart_item.product.brand}} </small>
+                                    
+                                        {% if cart_item.variations.all  %}
+                                            {% for item in cart_item.variations.all %}
+                                                <br>
+                                            <small>{{item.variation | capfirst}}: {{item.value | capfirst}} </small>
+                                                
+                                            {% endfor %}
+                                        {% endif %}
+                                    </p>
+                                </figcaption>
+                            </figure>
+                        </td>
+                        <td> 
+                            <label type="text" class="price text-center">{{cart_item.quantity}}</label>
+                        </td>
+                        <td> 
+                            <div class="price-wrap"> 
+                                {% if cart_item.product.low_price %}
+                                    <var class="price">${{cart_item.product.low_price|floatformat:"2g"}}</var> 
+                                    <del class="price-old"> ${{cart_item.product.price|floatformat:"2g"}} </del> 
+                                {% else %}
+                                    <var class="price">${{cart_item.product.price|floatformat:"2g"}}</var> 
+                                {% endif %}
+                            </div> <!-- price-wrap .// -->
+                        </td>
+                        <td> 
+                            <div class="price-wrap"> 
+                                <var class="price">${{cart_item.sub_total|floatformat:"2g" }}</var> 
+                            </div> <!-- sub_total-wrap .// -->
+                        </td>
+                        
+                    </tr>
+                    {% endfor %}
+                    
+                    </tbody>
+                </table>
+                {% if address_option %}
+                <div class="card">
+                    <div class="card-body">
+                        <dl class="dlist-align">
+                          <dt>Total producto:</dt>
+                          <dd class="text-right">${{total|floatformat:"2g"}}</dd>
+                        </dl>
+                        
+                        <dl class="dlist-align">
+                          <dt>Total a pagar:</dt>
+                          <dd class="text-right text-dark b"><strong>${{total|floatformat:"2g" }}</strong></dd>
+                        </dl>
+                        <hr>
+                        <p class="text-center mb-3">
+                            <img src="{% static "./images/misc/payments.png" %}" height="26">
+                        </p>
+                    </div> <!-- card-body.// -->
+                </div> <!-- card.// -->
+                <br>                
+                <button type="submit" name="submit" class="btn btn-primary btn-block"> Realizar Pedido ${{total|floatformat:"2g"}}</button>
+                {% else %}
+                <div class="card">
+                    <div class="card-body">
+                        <dl class="dlist-align">
+                          <dt>Total producto:</dt>
+                          <dd class="text-right">${{total|floatformat:"2g"}}</dd>
+                        </dl>
+                        
+                        <hr>
+                        <p class="text-center mb-3">
+                            <img src="{% static "./images/misc/payments.png" %}" height="26">
+                        </p>
+                    </div> <!-- card-body.// -->
+                </div> <!-- card.// -->
+                
+                <br>                
+                <button type="submit" name="submit" class="btn btn-primary btn-block"> Realizar Pedido ${{total|floatformat:"2g"}}</button>
+                {% endif %}
+            </div> <!-- card-body.// -->
+            </div> <!-- card.// -->
+
+    </aside> <!-- col.// -->
+    </form> <!-- Aqui estaba el '</form>' -->
+
+</div> <!-- row.// -->
+<!-- ============================ COMPONENT 1 END .// ================================= -->
+
+</div> <!-- container .//  -->
+</section>
+<!-- ========================= SECTION CONTENT END// ========================= -->
+
+{% endblock content %}

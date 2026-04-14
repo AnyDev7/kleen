@@ -1,0 +1,134 @@
+{% extends "./layout.html" %}
+{% load static %}
+
+
+
+
+
+{% block content %}
+
+
+<!-- ========================= SECTION MAIN ========================= -->
+<section class="section-intro padding-y-sm" style="background: #e0e0e0">
+<div class="container">
+
+<div class="intro-banner-wrap">
+	<img src="{% static "images/banners/draminski_bann.png" %}" class="img-fluid rounded">
+</div>
+
+</div> <!-- container //  -->
+</section>
+<!-- ========================= SECTION MAIN END// ========================= -->
+
+<!-- ========================= SECTION  ========================= -->
+<section class="section-name padding-y-sm" style="background: #e0e0e0">
+<div class="container">
+
+<header class="section-heading">
+	<a href="{% url "store" %}" class="btn btn-outline-primary float-right">Ver todos</a>
+	<h4 class="section-title">Productos destacados</h4>
+</header><!-- sect-heading -->
+
+<div class="row">
+	{% for product in products %}
+		<div class="col-md-3">
+			<div class="card card-product-grid">
+				<a href="{{product.get_url}}" class="img-wrap"> <img src=" {{product.image1.url}} "> </a>
+				<figcaption class="info-wrap">
+					<a href="{{product.get_url}}" class="title">{{product.name}}</a>
+					
+					<div>
+					{% if product.has_discount %}
+						<span class="price mt-1">${{product.low_price|floatformat:"2g"}}</span>
+						<del class="price-old">${{product.price|floatformat:"2g"}}</del>
+					{% else %}
+						<span class="price mt-1">${{product.price|floatformat:"2g"}}</span>
+					{% endif %}
+					</div> <!-- price-wrap.// -->
+					<div class="rating-star">
+						<span>
+							<i class="fa fa-star{% if product.avgRating < 0.5 %}-o{% elif product.avgRating >= 0.5 and product.avgRating < 1 %}-half-alt{% endif %} " aria-hidden="true" style="color: #ffb503;"></i>
+							<i class="fa fa-star{% if product.avgRating < 1.5 %}-o{% elif product.avgRating >= 1.5 and product.avgRating < 2 %}-half-alt{% endif %} " aria-hidden="true" style="color: #ffb503;"></i>
+							<i class="fa fa-star{% if product.avgRating < 2.5 %}-o{% elif product.avgRating >= 2.5 and product.avgRating < 3 %}-half-alt{% endif %} " aria-hidden="true" style="color: #ffb503;"></i>
+							<i class="fa fa-star{% if product.avgRating < 3.5 %}-o{% elif product.avgRating >= 3.5 and product.avgRating < 4 %}-half-alt{% endif %} " aria-hidden="true" style="color: #ffb503;"></i>
+							<i class="fa fa-star{% if product.avgRating < 4.5 %}-o{% elif product.avgRating >= 4.5 and product.avgRating < 5 %}-half-alt{% endif %} " aria-hidden="true" style="color: #ffb503;"></i>
+							
+						</span>
+					</div> <!--rating-star-->
+				</figcaption>
+			</div>
+		</div> <!-- col.// -->
+	{% endfor %}
+	
+	{% comment %}
+	PRODUCTOS ESTÁTICOS QUITAR
+	<div class="col-md-3">
+		<div class="card card-product-grid">
+			<a href="./product-detail.html" class="img-wrap"> <img src=" {% static "images/items/2.jpg" %} "> </a>
+			<figcaption class="info-wrap">
+				<a href="./product-detail.html" class="title">Chamarra repelente al agua</a>
+				<div class="price mt-1">$280.00</div> <!-- price-wrap.// -->
+			</figcaption>
+		</div>
+	</div> <!-- col.// -->
+	<div class="col-md-3">
+		<div class="card card-product-grid">
+			<a href="./product-detail.html" class="img-wrap"> <img src=" {% static "images/items/3.jpg" %} "> </a>
+			<figcaption class="info-wrap">
+				<a href="./product-detail.html" class="title">Short mezclilla verano 2024</a>
+				<div class="price mt-1">$56.00</div> <!-- price-wrap.// -->
+			</figcaption>
+		</div>
+	</div> <!-- col.// -->
+	<div class="col-md-3">
+		<div class="card card-product-grid">
+			<a href="./product-detail.html" class="img-wrap"> <img src=" {% static "images/items/4.jpg" %} "> </a>
+			<figcaption class="info-wrap">
+				<a href="./product-detail.html" class="title">Mochila lonchera de mano</a>
+				<div class="price mt-1">$179.00</div> <!-- price-wrap.// -->
+			</figcaption>
+		</div>
+	</div> <!-- col.// -->
+	<div class="col-md-3">
+		<div class="card card-product-grid">
+			<a href="./product-detail.html" class="img-wrap"> <img src=" {% static "images/items/5.jpg" %} "> </a>
+			<figcaption class="info-wrap">
+				<a href="./product-detail.html" class="title">iPad 6a. gen 256gb</a>
+				<div class="price mt-1">$179.00</div> <!-- price-wrap.// -->
+			</figcaption>
+		</div>
+	</div> <!-- col.// -->
+	<div class="col-md-3">
+		<div class="card card-product-grid">
+			<a href="./product-detail.html" class="img-wrap"> <img src=" {% static "images/items/6.jpg" %} "> </a>
+			<figcaption class="info-wrap">
+				<a href="./product-detail.html" class="title">Sillon estilo Verona gris oxford</a>
+				<div class="price mt-1">$280.00</div> <!-- price-wrap.// -->
+			</figcaption>
+		</div>
+	</div> <!-- col.// -->
+	<div class="col-md-3">
+		<div class="card card-product-grid">
+			<a href="./product-detail.html" class="img-wrap"> <img src=" {% static "images/items/7.jpg" %} "> </a>
+			<figcaption class="info-wrap">
+				<a href="./product-detail.html" class="title">Smartswatch cuenta pasos y presión arterial</a>
+				<div class="price mt-1">$56.00</div> <!-- price-wrap.// -->
+			</figcaption>
+		</div>
+	</div> <!-- col.// -->
+	{% endcomment %}
+</div> <!-- row.// -->
+
+</div><!-- container // -->
+</section>
+<!-- ========================= SECTION  END// ========================= -->
+
+
+
+
+
+
+</body>
+</html>
+
+{% endblock content %}

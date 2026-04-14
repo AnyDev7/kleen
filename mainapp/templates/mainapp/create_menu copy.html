@@ -1,0 +1,132 @@
+{% extends "./layout.html" %}
+{% load static %}
+
+{% block content %}
+
+
+<section class="section-content padding-y bg" style="background: #e0e0e0">
+<div class="container">
+
+
+<!-- ============================ESTO NO VA AQUI 30 Marzo 2026 
+
+	<div class="row">
+		<aside class="col-lg-9">
+		<div class="card">
+			<div class="container text-center">
+				<h4 class="title-page">Crear / Actualizar el Menú</h4>
+			</div> 
+			<hr>
+			<a href="{% url "store" %}" class="btn btn-info btn-block">Crear Menu<i class="fas fa-shopping-cart"></i></a>
+		</div>
+		</aside>
+	</div> ================================= -->
+
+	<!-- ============================ COMPONENT 1 ================================= -->
+	<div class="card">
+		<div class="row no-gutters">
+			<aside class="col-md-6">
+				<article class="gallery-wrap"> 
+					<div class="img-big-wrap mainImage">
+					<center><a href="{{prod.image1.url}}"><img src="{{prod.image1.url}}"></a></center>
+					</div> <!-- img-big-wrap.// -->
+				</article> <!-- gallery-wrap .end// -->
+				<ul class="thumb">
+					
+					<li>
+						<a href="{{prod.image1.url}}" target="mainImage"> <img src="{{prod.image1.url}}" alt="Articulo foto"> </a>
+						{% for item in product_gallery %}
+						<a href="{{item.image.url}}" target="mainImage"> <img src="{{item.image.url}}" alt="Articulo foto"> </a>
+						{% endfor %}
+					</li>
+					
+				</ul>
+			</aside>
+		<main class="col-md-6 border-left">
+			
+			<form action="{% url 'create_menu' %}" method='POST'>
+				{% csrf_token %}
+				<article class="content-body">
+
+					<header class="border-bottom mb-4 pb-3">
+						<div class="form-inline">
+							
+							<!-- <span class="mr-md-auto"> \<a href="{{cat.get_url}}">{{cat}}</a>\<a href="{{subcat.get_url}}">{{subcat.name}}</a>\{{prod.name}}</span> -->
+ 							
+						</div>
+					</header><!-- sect-heading -->
+
+					<h2 class="title">{{prod.name}}</h2>
+					<div class="rating-star">
+						<span>
+							<i class="fa fa-star{% if prod.avgRating < 0.5 %}-o{% elif prod.avgRating >= 0.5 and prod.avgRating < 1 %}-half-alt{% endif %} " aria-hidden="true" style="color: #ffb503;"></i>
+							<i class="fa fa-star{% if prod.avgRating < 1.5 %}-o{% elif prod.avgRating >= 1.5 and prod.avgRating < 2 %}-half-alt{% endif %} " aria-hidden="true" style="color: #ffb503;"></i>
+							<i class="fa fa-star{% if prod.avgRating < 2.5 %}-o{% elif prod.avgRating >= 2.5 and prod.avgRating < 3 %}-half-alt{% endif %} " aria-hidden="true" style="color: #ffb503;"></i>
+							<i class="fa fa-star{% if prod.avgRating < 3.5 %}-o{% elif prod.avgRating >= 3.5 and prod.avgRating < 4 %}-half-alt{% endif %} " aria-hidden="true" style="color: #ffb503;"></i>
+							<i class="fa fa-star{% if prod.avgRating < 4.5 %}-o{% elif prod.avgRating >= 4.5 and prod.avgRating < 5 %}-half-alt{% endif %} " aria-hidden="true" style="color: #ffb503;"></i>
+							{% if prod.countRating > 0 %}<span><b> {{prod.countRating}} reviews</b></span>{% endif %}
+						</span>
+					</div> <!--rating-star-->
+					<div class="mb-3"> 
+						{% if prod.low_price %}
+						<var class="price h4">${{prod.low_price|floatformat:"2g" }}</var> 
+						<del class="price-old h4">${{prod.price|floatformat:"2g" }}</del> 
+						{% else %}
+						<var class="price h4">${{prod.price|floatformat:"2g" }}</var> 
+						{% endif %}
+					</div> 
+					<p>{{prod.description}}</p>
+					<hr>
+									
+					<!-- Variaciones-->
+					<!-- Query de StockVar: prod.stockv_set.all = varsall (varsall ordenado por VarCat)-->
+					<!-- Checar si esto es igual: product.stockvariations_set.all = varsall Este Sí es igual-->
+					<!-- Checar si esto es igual: product.stockvariations.all = varsall -->
+
+					<div class="row">
+						
+					</div> <!-- row.// -->
+					
+					<hr>
+					
+					<!-- Si el producto ya existe en el carrito, se agrega 1 pza en la view add_product -->
+					<button type="submit" class="btn  btn-info"> <span class="text"> Crear Menu </span> <i class="fas fa-shopping-cart"></i>  </button>
+					{#<button type="button" href="#" class="btn btn-primary"> Comprar ahora <i class="fas fa-regular fa-heart"></i>  </a>#}
+
+				</article> <!-- product-info-aside .// -->
+				
+			</form>
+		</main> <!-- col.// -->
+		</div> <!-- row.// -->
+
+	</div> <!-- card.// -->
+	<br>
+	<!--  FICHA TECNICA -->
+	{% if prod.data_sheet %}		
+		<div class="card">
+			<div class="row no-gutters">
+				<aside class="col-md-12">
+					
+					<article class="content-body"> 
+						<header class="border-bottom mb-4 pb-3">
+						<p class="lead">Ficha técnica: <span>{{prod.brand}}</span></p> 
+						</header>
+						<div class="img-big-wrap">						
+						{{prod.data_sheet}}
+						</div> <!-- img-big-wrap .end// -->
+
+					</article> <!-- content-body .end// -->
+				</aside>
+			</div> <!-- row.// -->
+		</div> <!-- card.// -->
+	{% endif %}
+	<!-- ============================ COMPONENT 1 END .// ================================= -->
+	
+	<br>
+
+
+</div> <!-- container .//  -->
+</section>
+<!-- ========================= SECTION CONTENT END// ========================= -->
+
+{% endblock content %}

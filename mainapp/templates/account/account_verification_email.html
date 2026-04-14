@@ -1,0 +1,14 @@
+{% autoescape off %}
+{% csrf_token %}
+Que tal {{ user.first_name }},
+
+Gracias por hacer tu registro con {{ company }}, ahora da click en la liga para confirmar tu registro:
+
+http://{{domain}}{% url "activate" uidb64=uid token=token %}
+
+Si no has sido tú, ignora este correo.
+
+Atte.
+El Equipo de Cuentas de {{ company }}
+
+{% endautoescape %}

@@ -1,0 +1,109 @@
+{% extends "mainapp/layout.html" %}
+{% load static %}
+
+{% block content %}
+<!-- ========================= SECTION CONTENT ========================= -->
+<section class="section-conten padding-y bg" style="background: #e0e0e0;">
+
+    <div class="container">
+        <div class="row">
+        <!--aside-->
+        {% include "mainapp/includes/dashboard_sidebar.html" %}
+        <main class="col-md-9">
+            <article class="card" style="background: #f5f5f5">
+            <header class="card-header">
+                {% include "mainapp/includes/alerts.html" %}
+                <strong class="d-inline-block mr-3">Mis direcciones</strong>
+                {% if addresses %}
+                    <span style="text-align: right;"><button type="button" class="btn btn-success"> <span>Agregar otra</span> <i class="fa fa-plus"></i> </button></span> 
+                {% endif %}
+            </header>
+            <div class="card-body">
+                <div class="row"> 
+                    <div class="col-md-12">                        
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <span><b>Actualiza datos de dirección:</b></span>
+                                <br>
+                                <div class="card-body">
+                                    <div class="row"> 
+                                        <div class="col-md-12">
+                                            <form action="{% url "edit_address" address.id %}" method="POST">
+                                                {% csrf_token %}
+                                                <div class="form-row">
+                                                    <div class="form-group col-md-6">
+                                                        <label for="">Dirección</label>
+                                                        {{address_form.address_line_1}}
+                                                    </div>
+                                                    <div class="form-group col-md-6">
+                                                        <label for="">Colonia</label>
+                                                        {{address_form.address_line_2}}
+                                                    </div>
+                                                </div>
+                                                
+                                                <div class="form-row">
+                                                    <div class="form-group col-md-4">
+                                                        <label for="">Ciudad</label>
+                                                        {{address_form.city}}
+                                                    </div>
+                                                    <div class="form-group col-md-4">
+                                                        <label for="">Estado</label>
+                                                        <!-- Se captura 'name' -> user.state = request.POST['inputState'] -->
+                                                        <select id="inputState" name="inputState" class="form-control">
+                                                            <option value="" disabled>Elige</option>
+                                                            {% for state in states_mx %}
+                                                                <option value="{{state}}">{{state}}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                    <div class="form-group col-md-4">
+                                                        <label for="">Pais</label>
+                                                        {{address_form.country}}
+                                                    </div>
+                                                </div>
+                                                <div class="form-row">
+                                                    <div class="form-group col-md-2">
+                                                        <label for="">CP</label>
+                                                        {{address_form.zipcode}}
+                                                    </div>
+                                                    <div class="form-group col-md-3">
+                                                        <label for="">Telefono</label>
+                                                        {{address_form.phone}}
+                                                    </div>
+                                                    <div class="form-group col-md-7">
+                                                        <label for="">Referencia</label>
+                                                        {{address_form.nearby}}
+                                                    </div>
+                                                </div>
+                                                <div class="form-row" style="text-align: left;">
+                                                    <div class="form-group col-md-2" style="text-align: left;">
+                                                        <b><label for=""> Es mi favorita:</label></b>
+                                                        {{address_form.default}}
+                                                    </div>
+                                                    <div class="form-group col-md-2">
+                                                        <label for="">Está vigente:</label>
+                                                        {{address_form.is_active}}
+                                                    </div>
+                                                </div>
+                                                <button type="submit" class="btn btn-primary"> <span>Actualizar </span> <i class="fa fa-check"></i> </button>
+                                            </form>
+                                           
+                                        </div>
+                                    </div> <!-- row.// -->
+                                </div> <!-- card-body .// -->
+                                
+                            </table>
+                        </div> <!-- table-responsive .end// -->
+                    </div>
+                </div> <!-- row.// -->
+            </div> <!-- card-body .// -->
+            
+            </article> <!-- order-group.// --> 
+        </main>
+    </div> <!-- row.// -->
+    </div> <!-- container-->
+    
+    
+</section>
+    <!-- ========================= SECTION CONTENT END// ========================= -->
+{% endblock content %}

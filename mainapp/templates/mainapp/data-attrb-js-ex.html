@@ -1,0 +1,77 @@
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS data-* attribute</title>
+    <style type="text/css">
+        body {
+            font-family: helvetica, sans-serif;
+            font-size: 10px;
+        }
+        .sprite {
+            background: url(http://vxresource.files.wordpress.com/2010/02/char113.png);
+            height: 32px;
+            width: 30px;
+            background-position: 128px 0px;
+            position: relative;
+            top: 50px;
+            left: 50px;
+        }
+        .sprite::after {
+            content: attr(data-score);
+            position: absolute;
+            top: -10px;
+            opacity: 0;
+            transition: 2s;
+        }
+        .sprite:hover::after {
+            opacity: 1;
+        }
+        .sprite[data-score='10']::after {
+            color: #c00;
+        }
+        .cars {
+            background: url(http://vxresource.files.wordpress.com/2010/02/char113.png);
+            height: 32px;
+            width: 30px;
+            background-position: 128px 0px;
+            position: relative;
+            top: 100px;
+            left: 50px;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="sprite" data-score="100"></div> <!-- Ejemplo 1 -->
+
+    <article
+        class="cars"
+        id="electric-cars"
+        data-columns="3"
+        data-index-number="12314"
+        data-parent="cars">
+        Ejemplo 2
+    </article>  <!-- Ejemplo 2 -->
+     
+
+    <script>
+        // Ejemplo 1
+        var character = document.querySelector('.sprite');  <!-- .sprite for class; #sprite for id -->
+        character.dataset.score = 50;
+
+        // Ejemplo 2
+        const article = document.querySelector("#electric-cars");
+        // The following would also work:
+        // const article = document.getElementById("electric-cars")
+        
+        article.dataset.columns; // "3"
+        article.dataset.indexNumber; // "12314"
+        article.dataset.parent; // "cars"
+    </script>
+
+    
+    
+
+</body>
+</html>

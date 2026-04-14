@@ -1,0 +1,18 @@
+{% autoescape off %}
+{% csrf_token %}
+Que tal {{ user.first_name }},
+
+Hemos recibido tu compra.
+
+ORDEN: {{order.number}}
+
+Contiene los productos:
+{% for item in cart_items %}
+    * {{item.product.name}} - {{item.product.description}}: {{item.quantity}} piezas 
+{% endfor %}
+
+
+Atte.
+El Equipo de Cuentas de {{ company }}
+
+{% endautoescape %}

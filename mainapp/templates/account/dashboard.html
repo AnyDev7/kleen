@@ -1,0 +1,66 @@
+{% extends "mainapp/layout.html" %}
+{% load static %}
+
+{% block content %}
+<!-- ========================= SECTION CONTENT ========================= -->
+<section class="section-conten padding-y bg" style="background: #e0e0e0;">
+
+    <div class="container">
+        <div class="row">
+        <!--aside-->
+        {% include "mainapp/includes/dashboard_sidebar.html" %}
+        <main class="col-md-9">
+            <article class="card" style="background: #f5f5f5">
+            <header class="card-header" style="text-align: center; background:#eeeeee">
+                {% include "mainapp/includes/alerts.html" %}
+                <span class="d-inline-block mr-3">{{user.full_name}}</span>
+                <span> usuario Premium</span>
+            </header>
+            <div class="card-body">
+                <div class="row"> 
+                    <div class="col-md-6">
+                        <div class="card" style="text-align: center;">
+                            <div class="card-body">
+                                <h6 class="text-muted">Ordenes:</h6>
+                                <h5>{{orders_count}}</h5>
+                                <a href=" {% url "my_orders" %} ">ver ordenes</a>
+                            </div>
+                        </div>
+                        <br>
+                        <h6 class="text-muted">Enviar a:</h6>
+                        {% if address %}
+                            <p class="text-muted">{{address.user.first_name}} {{address.user.last_name}}<br>
+                            Telefono: {{address.phone}} Email: {{address.user.email}} <br>
+                            Dirección: {{address.address_line_1}}, {{address.city}}, {{address.state}}, {{address.country}} <br> 
+                            CP {{address.zipcode}}
+                            </p>
+                        {% else %}
+                        
+                            <p class="text-muted">No tienes una<a href=" {% url "addresses" %}"> dirección favorita </a>predeterminada.</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card" style="text-align: center;">
+                            <div class="card-body">
+                              {% comment "<img class="avatar" src="{% static "./images/rebecca-hall.jpg" %}" alt="Avatar" width="50" height="65" style="border-radius:50%;">" %}{% endcomment %}
+                              
+                              <img class="avatar" src="{{userprofile.picture.url}}" alt="Avatar usuario" width="50" height="60" style="border-radius:50%;">
+                              <!--https://www.w3schools.com/w3images/avatar2.png-->
+                              
+                              <p class="mb-0"> {{user.email}} </p>
+                              <p>{{user.phone}}</p>
+                            </div>
+                        </div>                        
+                    </div>
+                </div> <!-- row.// -->
+            </div> <!-- card-body .// -->
+            
+            </article> <!-- order-group.// --> 
+        </main>
+    </div> <!-- row.// -->
+    </div>
+    
+    
+    </section>
+    <!-- ========================= SECTION CONTENT END// ========================= -->
+{% endblock content %}

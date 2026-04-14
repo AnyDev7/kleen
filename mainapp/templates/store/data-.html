@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+<script>
+function showDetails(animal) {
+  let animalType = animal.getAttribute("data-animal-type");
+  alert("The " + animal.innerHTML + " is a " + animalType + ".");
+}
+</script>
+</head>
+<body>
+
+<h1>Species</h1>
+<p>Click on a species to see what type it is:</p>
+
+<ul>
+  <li onclick="showDetails(this)" id="owl" data-animal-type="bird">Owl</li>
+  <li onclick="showDetails(this)" id="salmon" data-animal-type="fish">Salmon</li>  
+  <li onclick="showDetails(this)" id="tarantula" data-animal-type="spider">Tarantula</li>  
+</ul>
+
+<script> <!-- Otro ejemplo de JS to get data-* Attribute-->
+    document.querySelector("#form_id").addEventListener("submit", function(e) {
+        const your_data_attribute = document.getElementById("XXX").dataset.yourInfo;
+        const another_hidden_field = document.getElementById("YYY");
+        another_hidden_field.value = your_data_attribute;
+      });
+</script>
+</body>
+</html>

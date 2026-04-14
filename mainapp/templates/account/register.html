@@ -1,0 +1,102 @@
+{% extends "mainapp/layout.html" %}
+
+{% block content %}
+<!-- ========================= SECTION CONTENT ========================= -->
+<section class="section-content padding-y" style="background:#e0e0e0;">
+
+    <!-- ============================ COMPONENT REGISTER   ================================= -->
+        <div class="card mx-auto" style="max-width:520px; margin-top:40px; background: #f5f5f5;">
+            <article class="card-body">
+                <header class="mb-4"><h4 class="card-title">Crea tu cuenta</h4></header>
+                <form action="{% url "register" %}" method="POST">
+                    {% csrf_token %}
+
+                    {% if form.email.errors %}
+                    <div class="alert alert-danger" role="alert">
+                        <button type="button" class="close" data-dismiss="alert"> <span aria-hidden="true" >&times</span> </button>
+                        {{form.email.errors}}
+                    </div>
+                    {% endif %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger" role="alert">
+                        <button type="button" class="close" data-dismiss="alert"> <span aria-hidden="true" >&times</span> </button>
+                        {{form.non_field_errors}}
+                    </div>
+                    {% endif %}
+
+                    {% include "mainapp/includes/alerts.html" %}
+                    <div class="form-row">
+                        <div class="col form-group">
+                            <label>Nombre</label>
+                            <!--<input type="text" class="form-control" placeholder="">-->
+                            {{form.first_name}}
+                        </div> <!-- form-group end.// -->
+                        <div class="col form-group">
+                            <label>Apellidos</label>
+                            {{form.last_name}}
+                        </div> <!-- form-group end.// -->
+                    </div> <!-- form-row end.// -->
+                    <!-- NO ES UN ROW por eso ocupa el ancho de la tarjeta: <article class="card-body"> -->
+                    <div class="form-group">
+                        <label>Email</label>
+                        {{ form.email }}
+                        <small class="form-text text-muted">Tus datos nunca serán compartidos.</small>
+                    </div> <!-- form-group end.// -->
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>Telefono</label>
+                            {{form.phone}}
+                            </div> <!-- form-group end.// -->
+                        <div class="form-group col-md-6">
+                            <label>Ciudad</label>
+                            {{form.city}}
+                        </div> <!-- form-group end.// -->
+                    </div> <!-- form-row.// -->
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>Estado</label>
+                            <!-- Se captura 'name' -> user.state = request.POST['inputState'] -->
+                            <select id="inputState" name="inputState" class="form-control">
+                                <option value="" disabled>Elige</option>
+                                {% for state in states_mx %}
+                                    <option value="{{state}}">{{state}}</option>
+                                {% endfor %}
+                            </select>
+                        </div> <!-- form-group end.// -->
+                        <div class="form-group col-md-6">
+                            <label>Pais</label>
+                            {{form.country}}
+                        </div> <!-- form-group end.// -->
+                    </div> <!-- form-row.// -->
+
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label>Crea tu contraseña</label>
+                            {{form.password}}
+                        </div> <!-- form-group end.// --> 
+                        <div class="form-group col-md-6">
+                            <label>Repite la contraseña</label>
+                            {{form.confirm_password}}
+                        </div> <!-- form-group end.// -->  
+                    </div> <!-- form-row.// -->
+                    <div class="form-group">
+                        {{form.email.errors}}
+                        {{form.non_field_errors}}
+                        <button type="submit" class="btn btn-primary btn-block"> Crear mi cuenta  </button>
+                        
+                    </div> <!-- form-group// -->      
+                            
+                </form>
+            </article><!-- card-body.// -->
+        </div> <!-- card .// -->
+        <p class="text-center mt-4">¿Ya tienes cuenta? <a href={% url "login" %}>Ingresar</a></p>
+        <br><br>
+    <!-- ============================ COMPONENT REGISTER  END.// ================================= -->
+    
+    
+</section>
+    <!-- ========================= SECTION CONTENT END// ========================= -->
+{% endblock content %}

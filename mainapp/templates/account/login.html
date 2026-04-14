@@ -1,0 +1,52 @@
+{% extends "mainapp/layout.html" %}
+
+{% block content %}
+
+<!-- ========================= SECTION CONTENT ========================= -->
+<section class="section-conten padding-y" style="min-height:84vh; background: #e0e0e0;">
+
+{% if request.GET.command == 'verification' %}
+  <div class="container mx-auto alert alert-info text-center" role="alert" style="max-width: 880px; margin-top:100px; background: #f5f5f5;">
+    <p>Gracias por registrarte con nosotros, se ha creado tu usuario.</p>
+    <p> Ahora revisa tu correo: [{{request.GET.email}}] para activar tu cuenta.</p>
+    <br><br>
+    ¿Ya activaste tu cuenta? <a href=" {% url "login" %} ">Entrar</a>
+  </div>
+{% else %}
+
+    <!-- ============================ COMPONENT LOGIN   ================================= -->
+        <div class="card mx-auto" style="max-width: 380px; margin-top:100px; background: #f5f5f5">
+          <div class="card-body">
+          <h4 class="card-title mb-4">Ingresar</h4>
+          {% include "mainapp/includes/alerts.html" %}
+          <form action="{% url "login" %}" method="POST">
+            {% csrf_token %}
+              <div class="form-group">
+                <label>Correo</label>
+                <input name="email" type="email" class="form-control" placeholder="ingresa tu correo" >
+              </div> <!-- form-group// -->
+              <div class="form-group">
+                <label>Contraseña</label>
+                <input name="password" type="password" class="form-control" placeholder="ingresa tu contraseña" >
+              </div> <!-- form-group// -->
+              
+              <div class="form-group">
+                  <a href=" {% url "forgot_password" %} " class="float-right">¿Se te olvido la contraseña?</a> 
+               
+              </div> <!-- form-group form-check .// -->
+              <div class="form-group">
+                  <button type="submit" class="btn btn-primary btn-block"> Entrar  </button>
+              </div> <!-- form-group// -->    
+          </form>
+          </div> <!-- card-body.// -->
+        </div> <!-- card .// -->
+    
+         <p class="text-center mt-4">¿No tienes cuenta? <a href=" {% url "register" %} ">Crea tu cuenta</a></p>
+         <br><br>
+    <!-- ============================ COMPONENT LOGIN  END.// ================================= -->
+    
+{% endif %}  
+    </section>
+    <!-- ========================= SECTION CONTENT END// ========================= -->
+
+{% endblock content %}

@@ -1,0 +1,1 @@
+web: gunicorn kart.wsgi:application --bind 0.0.0.0:80 --pid /var/run/web.pid
