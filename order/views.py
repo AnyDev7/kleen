@@ -12,7 +12,108 @@ from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.http import JsonResponse
 
-# Create your views here.
+from django.views.decorators.csrf import csrf_protect #CHECAR 15ABR2026
+
+
+@csrf_protect #CHECAR 15Abr2026
+def payment_cash(request):
+    if request.method == 'POST':
+        #Obtener datos del request POST
+        type_payment = request.POST.get('payment')
+        payment_id = request.POST.get('payment_id')
+        order_number = request.POST.get('order_number')
+        if type_payment == 'cash':
+            payment_id = type_payment + order_number
+        else:
+            payment_id = type_payment + order_number
+
+        # body = json.loads(request.body)
+        order_exist = Order.objects.filter(user=request.user, number=order_number)
+        print(f"Orden: {order_number}, Existe:{order_exist}")
+        order = get_object_or_404(Order, user=request.user, is_ordered=False, number=order_number)
+        
+        try:
+            # store transaction data
+            payment = Payment(
+                user = request.user,
+                payment_id = payment_id, #request.POST.get('payment_id'), #Del modelo Payment, payment_id no es un indice
+                payment_method = "Cash",
+                amount_paid = order.total,  #float(body['payment_amount']), #Order model: order.total
+                #currency = body['payment_currency'], # Aún no queda el POST en el script de payment.html
+                status = "Completado",
+            )
+            payment.save()
+            
+            order.payment = payment  # Foreign_key se asigna el objeto completo al campo ForeignKey
+            order.is_ordered = True
+            order.status = "Pagada"
+            order.save()
+
+            # Move cart items to OrderProduct table 
+            cart_items = CartItem.objects.filter(user=request.user).exclude(quantity=0)
+            for item in cart_items:
+                orderproduct = OrderProduct()
+                orderproduct.order_id = order.id
+                orderproduct.payment = payment
+                orderproduct.user_id = request.user.id
+                orderproduct.product_id = item.product_id
+                orderproduct.quantity = item.quantity
+                orderproduct.price = item.price
+                orderproduct.ordered = True
+                orderproduct.save()
+
+                cart_item = CartItem.objects.get(id=item.id)
+                product_variations = cart_item.variations.all()
+                orderproduct = OrderProduct.objects.get(id=orderproduct.id)
+                orderproduct.variations.set(product_variations)
+                orderproduct.save()
+
+                # decrease o reduce quantity of sale product & variation
+                product = Product.objects.get(id=item.product_id)
+                product.stock -= item.quantity
+                product.save()  # Hasta aqui OK
+
+                # Decrease quantity of variation
+                for stockvar in product_variations:
+                    stockvar.stock -= item.quantity
+                    stockvar.save()
+            
+            # Clear Cart
+            CartItem.objects.filter(user=request.user).delete()
+
+            # Send Order recieved email to customer
+            mail_subject = '¡Gracias por tu compra!'
+            mail_message = render_to_string('order/order_recieved_email.html', {
+                'user': request.user,
+                'order': order,
+                'cart_items': cart_items,
+                'company': 'AP Equipos Integrados SA CV',
+            })
+            to_email = request.user.email
+            send_email = EmailMessage(mail_subject, mail_message, to=[to_email])
+            send_email.send()
+
+        except:
+            None
+
+        #Agregado 20Abr 2026
+        try:
+            order = Order.objects.get(number=order_number, is_ordered=True)
+            ordered_products = OrderProduct.objects.filter(order_id=order.id).exclude(quantity=0)
+            payment = Payment.objects.get(payment_id=payment_id)
+            context = {
+                'order': order,
+                'ordered_products': ordered_products,
+                'payment': payment,
+            }
+            return render(request, "order/order_complete.html", context)
+    
+        except (Payment.DoesNotExist, Order.DoesNotExist):
+            None #return redirect('home')
+
+        #redirect('order_complete') comentado 20Abr 2026
+    else:
+        redirect('ecart')
 
 def payment(request):
     if request.method == 'POST':
@@ -38,7 +139,7 @@ def payment(request):
             order.save()
 
             # Move cart items to OrderProduct table 
-            cart_items = CartItem.objects.filter(user=request.user)
+            cart_items = CartItem.objects.filter(user=request.user).exclude(quantity=0)
             for item in cart_items:
                 orderproduct = OrderProduct()
                 orderproduct.order_id = order.id
@@ -230,7 +331,7 @@ def place_order(request, delivery, order_note, address_id=None, total=0, quantit
             'g_total': g_total,
             'ship_total': ship_total,
         }
-        return render(request, 'order/payment.html', context)        
+        return render(request, 'order/payment_kleen.html', context)        
     else:
         return redirect('checkout')
 

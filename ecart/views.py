@@ -26,7 +26,9 @@ def get_first_key(dictionary):
     raise IndexError
 
 @login_required(login_url='login')
-def create_menu(request, flag=False, qty=0): # ADD_CART course    
+def create_menu(request, flag=False, qty=0):
+    # Clear Cart
+    #CartItem.objects.filter(user=request.user).delete() or comparar item by item
     product = None
     cart = None
     cart_item = None
@@ -35,9 +37,8 @@ def create_menu(request, flag=False, qty=0): # ADD_CART course
     #Cargar con bucle todos los productos en el ecart, sesión actual.
     try:
         products = Product.objects.all().filter(is_available=True)
-        #print(f"products consulta QuerySet: {products}")
         for product in products:
-            
+            # quitar print
             print(f"producto desde create_menu: {product.id}, desc:{product.name}")
             try:
                 cart = Cart.objects.get(cart_id=_cart_id(request)) # Conseguir el Cart actual con la cart_id de la sesion actual        
@@ -46,7 +47,10 @@ def create_menu(request, flag=False, qty=0): # ADD_CART course
                     cart_id = _cart_id(request),
                 )
                 cart.save()
-            cart_item_exists = CartItem.objects.filter(product = product, cart=cart).exists()
+
+            #Modidicado 15Abr2026: product = product (no se puede comparar instancia con instancia) > product_id = product.id
+            # product_id hace referencia a la relación del modelo CartItem con Products
+            cart_item_exists = CartItem.objects.filter(product_id = product.id, cart=cart).exists()
             if cart_item_exists:
                 #cart_item = CartItem.objects.filter(product=product, cart=cart)
 
@@ -68,7 +72,6 @@ def create_menu(request, flag=False, qty=0): # ADD_CART course
                 cart_item.save()
     except:
         None
-    
     
     return redirect('ecart')
 

@@ -8,6 +8,8 @@
 
 <!-- ============================ COMPONENT 1 ================================= -->
 <h4 class="text-center mb-10">Revisa tu orden</h4>
+<form action="{% url 'payment_cash' %}" method="POST">
+{% csrf_token %}
 <div class="row">
 <aside class="col-lg-8">
     <div class="card">
@@ -17,8 +19,11 @@
 		  <p class="card-text mb-0">{{order.full_address}}</p>
 		  <p class="card-text mb-0">{{order.city}}, {{order.state}}, {{order.country}}.  CP {{order.zipcode}}  </p>
 		  <p class="card-text mb-0">{{order.email}} | Tel. {{order.phone}} </p>
-		  {% if order.note %}  <p class="card-text mb-0"> <b>Observaciones de tu compra:</b> <small>"{{order.note}}"</small></p>
+		  {% if order.note %}  <p class="card-text mb-0"> Observaciones: <small>"{{order.note}}"</small></p>
 		  {% else %} <p class="card-text mb-0"> <small>"Sin observaciones"</small></p> 
+		  {% endif %}
+		  {% if order.pickup_instructions %}  <p class="card-text mb-0"> Instrucciones: <small>"{{order.pickup_instructions}}"</small></p>
+		  {% else %} <p class="card-text mb-0"> <small>"Sin instrucciones"</small></p> 
 		  {% endif %}
 		  
           
@@ -26,8 +31,33 @@
     </div> <!-- card.// -->
     <div class="card">
         <h5 class="card-header">Método de pago</h5>
-        <div class="card-body">          
-          <p class="card-text">Paypal.</p>
+        <div class="card-body">
+
+
+			
+                            
+			<div class="form-row">
+				<div class="col form-group">
+					<div class="form-check">
+						<input value="cash" class="form-check-input" type="radio" name="payment" id="pickup" checked>
+						<label class="form-check-label" for="delivery">
+							<span style="color: black;" > Efectivo </span>
+						</label>
+					</div>
+				</div>
+			</div>
+			<div class="form-row">
+				<div class="col form-group">
+					<div class="form-check">
+						<input value="paypal" class="form-check-input" type="radio" name="payment" id="ship">
+						<label class="form-check-label" for="delivery">
+							<span style="color: black;"> Paypal o Tarjeta</span>
+						</label>
+					</div>
+				</div>
+			</div>
+
+          <!-- <p class="card-text">Efectivo</p> -->
           
         </div>
     </div> <!-- card.// -->
@@ -109,14 +139,35 @@
 			<dl class="dlist-align">
 			  <dt>Total con envío:</dt>
 				<dd class="text-right text-dark b"><strong>${{ship_total|floatformat:"2g" }}</strong></dd>
-				{% comment "<dd class="text-right text-dark b"><strong>${{total|add:ship_cost|floatformat:"2g" }}</strong></dd>" %}{% endcomment %}
+				{% comment %}
+				"<dd class="text-right text-dark b"><strong>${{total|add:ship_cost|floatformat:"2g" }}</strong></dd>" 
+				{% endcomment %}
 			</dl>
 			
 			<hr>
 			<p class="text-center mb-3">
 				<img src="{% static "./images/misc/payments.png" %}" height="26">
 			</p>
-			{% comment "<a href="{% url 'checkout' %}" class="btn btn-warning btn-block"> Pagar </a>" %}{% endcomment %}
+			{% comment %}
+			2 Formas enviar datos por GET
+			<form method="get" action="{% url 'procesar' %}">
+				<label for="nombre">Nombre:</label>
+				<input type="text" id="nombre" name="nombre" value="Juan">
+				<button type="submit">Enviar</button>
+			</form>
+			<!--<a href="{% url 'procesar' %}?nombre=Maria">Enviar nombre por GET</a>-->
+			<!--/procesar/?nombre=Maria-->
+			<!--/procesar/?nombre=Juan&edad=25-->
+			<a href="{% url 'mi_vista' %}?csrfmiddlewaretoken={{ csrf_token }}">Ir a vista</a>
+			
+			<input type="hidden" name="signed_url" value="{{ signed_url }}"> <!-- CHECAR 15ABR2026-->			
+			Tenía esto: 17Abr2026
+			<a href="{% url 'payment_cash' %}?order_number={{order.number}}&payment_id=Efectivo&csrfmiddlewaretoken={{ csrf_token }}" class="btn btn-warning btn-block"> Pagar Efectivo ${{ship_total|floatformat:"2g" }}</a>
+			{% endcomment %}
+			<input type="hidden" name="order_number" value="{{ order.number }}">
+			<input type="hidden" name="payment_id" value="Efectivo">
+			<button type="submit" name="submit" class="btn btn-primary btn-block"> Pagar Efectivo ${{ship_total|floatformat:"2g" }}</button>
+			<hr>
 			<div id="paypal-button-container">
 				<!-- Paypal button will load here-->
 			</div>
@@ -131,7 +182,7 @@
 
 
 </div> <!-- row.// -->
-
+</form>
 <!-- ============================ COMPONENT 1 END .// ================================= -->
 
 </div> <!-- container .//  -->
@@ -161,7 +212,7 @@
 
 	var csrftoken = getCookie('csrftoken');
 	var orderID = "{{order.number}}"
-	var url = "{% url "payment" %}"
+	var url = "{% url 'payment' %}"
 	var payment_method = 'Paypal'
 	var redirect_url = "{% url 'order_complete' %}"
 
@@ -197,7 +248,7 @@
 				sendData();
 				function sendData(){
 					// para extraer datos: const response = await fetch(url,{
-					fetch(url,{  // para enviar datos
+					fetch(url,{  // para enviar datos a view url = "{% url 'payment' %}"
 						method: "POST",
 						headers: {
 							"Content-type": "application/json",

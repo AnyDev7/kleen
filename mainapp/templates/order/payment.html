@@ -161,7 +161,7 @@
 
 	var csrftoken = getCookie('csrftoken');
 	var orderID = "{{order.number}}"
-	var url = "{% url "payment" %}"
+	var url = "{% url 'payment' %}"
 	var payment_method = 'Paypal'
 	var redirect_url = "{% url 'order_complete' %}"
 
@@ -197,7 +197,7 @@
 				sendData();
 				function sendData(){
 					// para extraer datos: const response = await fetch(url,{
-					fetch(url,{  // para enviar datos
+					fetch(url,{  // para enviar datos a view url = "{% url 'payment' %}"
 						method: "POST",
 						headers: {
 							"Content-type": "application/json",

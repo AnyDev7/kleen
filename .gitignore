@@ -193,9 +193,7 @@ Copia env_copia
 
 
 
-###
-###gitignore de GitHub para Python
-###
+#gitignore de GitHub para Python
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
