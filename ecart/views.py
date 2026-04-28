@@ -27,8 +27,8 @@ def get_first_key(dictionary):
 
 @login_required(login_url='login')
 def create_menu(request, flag=False, qty=0):
-    # Clear Cart
-    #CartItem.objects.filter(user=request.user).delete() or comparar item by item
+    # Clear Cart o comparar item by item
+    #CartItem.objects.filter(user=request.user).delete()
     product = None
     cart = None
     cart_item = None
@@ -49,11 +49,12 @@ def create_menu(request, flag=False, qty=0):
                 cart.save()
 
             #Modidicado 15Abr2026: product = product (no se puede comparar instancia con instancia) > product_id = product.id
-            # product_id hace referencia a la relación del modelo CartItem con Products
-            cart_item_exists = CartItem.objects.filter(product_id = product.id, cart=cart).exists()
+            # product__id hace referencia a la relación del modelo CartItem con el modelo Products
+            cart_item_exists = CartItem.objects.filter(product__id = product.id, cart=cart).exists()
             if cart_item_exists:
                 #cart_item = CartItem.objects.filter(product=product, cart=cart)
-
+                
+                # 28ABR 2026: REVISAR SI obtiene el producto del carrito.
                 #Obtener el item del carrito
                 cart_item = CartItem.objects.get(product=product)
                 cart_item.quantity = 0
