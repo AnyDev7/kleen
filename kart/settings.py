@@ -184,6 +184,7 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
 # Cambiar el texto explicito por el dic de 'decouple'
 
 STATES_MX = config('STATES_MX').split(",")
+COMPANY = config('COMPANY')
 #OK change your .env file to: ALLOWED_CODES=AB01,AB02
 #OK then you could do: ALLOWED_CODES = os.environ.get('ALLOWED_POSTCODES').split(",")
 

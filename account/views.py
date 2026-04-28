@@ -1,6 +1,7 @@
 from django.shortcuts import render, HttpResponse, redirect, get_object_or_404
 
 from kart.settings import STATES_MX
+from kart.settings import COMPANY
 
 
 from .forms import New_CustomerForm, RegisterForm, UserForm, UserProfileForm, AddressForm
@@ -23,6 +24,7 @@ from order.models import Order, OrderProduct
 
 # * VERIFICAR ESTA LIBRERIA
 import requests
+
 
 # Variables de entorno
 #https://diegoamorin.com/variables-de-entorno-django/
@@ -88,6 +90,8 @@ def register(request):
     #global STATES_MX
     if request.method == 'POST':
         form = RegisterForm(request.POST)
+        #Quitar 3 print  28Abr 2026
+        #print(f"Si es POST {request.POST}")
         if form.is_valid():
             first_name = form.cleaned_data['first_name']
             last_name = form.cleaned_data['last_name']
@@ -104,11 +108,6 @@ def register(request):
             user.state = request.POST['inputState'] # hace referencia la 'key' al 'name' del select o input
             user.country = country
             
-            """ Checar USUARIO REGISTRADO NO ACTIVADO
-            check_user = get_object_or_404(Account, email=email)
-            if check_user.email == email and not check_user.is_active:
-                return HttpResponse("El usuario existe, pero NO esta inactivo")
-            """
             user.save()
             # Create User Profile
             profile = UserProfile()
@@ -124,7 +123,7 @@ def register(request):
                 'domain': current_site,
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                 'token': default_token_generator.make_token(user),
-                'company': 'AP Equipos Integrados SA CV',
+                'company': COMPANY,
             })
             to_email = email
             send_email = EmailMessage(mail_subject, mail_message, to=[to_email])
@@ -132,9 +131,24 @@ def register(request):
             
             #messages.success(request, "Se creo tu usuario, revisa tu correo para activar tu cuenta.")
 
-            return redirect('/account/login/?command=verification&email='+email) # Revisar si se deja este return
-        #else:            
-        #    return HttpResponse(form.errors)
+            return redirect('/account/login/?command=verification&email='+email) 
+        #Agregado 28Abr 2026
+        else:
+            print(f"Error en la Form")
+            # Captura los errores
+            #errores = form.errors.as_data()  # Devuelve un diccionario con errores detallados
+            # Puedes imprimir en consola para depuración
+            #print("Errores del formulario form.errors.as_data():", errores)
+            # También puedes convertir a formato legible
+            #errores_legibles = form.errors.as_json()
+            #print("Errores JSON form.errors.as_json():", errores_legibles)
+            #key: "email", value: lista[] 1 elemento
+            #print(f"Errores JSON 'message':, {errores_legibles[0]}") #ERROR No existe elemento 0
+            #messages.warning(request, f"Error: {errores_legibles[1]} ") #No funciona estructura de JSON
+
+            #return render(request, 'account/register.html', context)
+            #return HttpResponse(form.errors)
+        
     else:
         # Solo limpia la Form si es la primera vez que se accesa, si o muestra errores y contenido de form
         form = RegisterForm()  
