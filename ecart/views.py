@@ -37,9 +37,7 @@ def create_menu(request, flag=False, qty=0):
     #Cargar con bucle todos los productos en el ecart, sesión actual.
     try:
         products = Product.objects.all().filter(is_available=True)
-        for product in products:
-            # quitar print
-            print(f"producto desde create_menu: {product.id}, desc:{product.name}")
+        for product in products:            
             try:
                 cart = Cart.objects.get(cart_id=_cart_id(request)) # Conseguir el Cart actual con la cart_id de la sesion actual        
             except Cart.DoesNotExist:
