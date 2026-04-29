@@ -37,6 +37,6 @@ urlpatterns = [
 # https://youtu.be/cE66WnX8Euo?si=r4M8c_BoxsbjXLFi
 
 # Cambiar titulos del panel Admin
-admin.site.site_header = COMPANY + " Panel Admin | by ▲▼anyDev7"
+admin.site.site_header = COMPANY + " Admin | by ▲▼anyDev7"
 admin.site.site_title = "▲▼anyDev7"
 admin.site.index_title = "Admin sitio"
