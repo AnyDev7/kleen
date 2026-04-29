@@ -5,7 +5,7 @@ from django.db.models import Q
 from django.urls import reverse
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from kart.settings import PAGING
+from kart.settings import PROD_PER_PAG
 
 
 from store.models import Product, VarCat, Variation, StockVar, Rating, ProductGallery
@@ -71,7 +71,7 @@ def store(request, category_slug=None, cat_slug=None, flag=None):
         low_prod_count = low_prods.count()
 
     if products:    
-        paged_products = paging(request, products, PAGING) # Modificar la cantidad de productos por página PAGING=3 en .env
+        paged_products = paging(request, products, PROD_PER_PAG) # Modificar la cantidad de productos por página PROD_PER_PAG=3 en .env
     
     context = {
         'title': 'Store',
