@@ -28,7 +28,7 @@ def get_first_key(dictionary):
 @login_required(login_url='login')
 def create_menu(request, flag=False, qty=0):
     # Clear Cart o comparar item by item
-    #CartItem.objects.filter(user=request.user).delete()
+    CartItem.objects.filter(user=request.user).delete()
     product = None
     cart = None
     cart_item = None

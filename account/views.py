@@ -87,7 +87,8 @@ def new_customer(request, total="", flag=0):  #flag=1 viene de select_customer.h
  
 
 def register(request):
-    #global STATES_MX
+    #global STATES_MX Se maneja en .env y se importa en settings.py,
+    # despues se importa en la view que lo usará: from kart.settings import COMPANY
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         #Quitar 3 print  28Abr 2026
