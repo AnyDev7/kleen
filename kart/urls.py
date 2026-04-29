@@ -19,6 +19,7 @@ from django.urls import include, path
 import mainapp.views
 from django.conf.urls.static import static
 from django.conf import settings
+from kart.settings import COMPANY
 
 urlpatterns = [
     path('admin/', include('admin_honeypot.urls', namespace='admin_honeypot')),
@@ -36,6 +37,6 @@ urlpatterns = [
 # https://youtu.be/cE66WnX8Euo?si=r4M8c_BoxsbjXLFi
 
 # Cambiar titulos del panel Admin
-admin.site.site_header = "AP Equipos Panel Admin | powered by ▲▼anyDev7"
+admin.site.site_header = COMPANY + " Panel Admin | by ▲▼anyDev7"
 admin.site.site_title = "▲▼anyDev7"
 admin.site.index_title = "Admin sitio"

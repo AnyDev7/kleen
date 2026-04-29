@@ -6,6 +6,7 @@ from .forms import OrderForm
 from .models import Order, Payment, OrderProduct
 from store.models import Product
 from account.models import Address
+from kart.settings import COMPANY
 
 import datetime
 from django.core.mail import EmailMessage
@@ -87,7 +88,7 @@ def payment_cash(request):
                 'user': request.user,
                 'order': order,
                 'cart_items': cart_items,
-                'company': 'AP Equipos Integrados SA CV',
+                'company': COMPANY,
             })
             to_email = request.user.email
             send_email = EmailMessage(mail_subject, mail_message, to=[to_email])
@@ -176,7 +177,7 @@ def payment(request):
                 'user': request.user,
                 'order': order,
                 'cart_items': cart_items,
-                'company': 'AP Equipos Integrados SA CV',
+                'company': COMPANY,
             })
             to_email = request.user.email
             send_email = EmailMessage(mail_subject, mail_message, to=[to_email])

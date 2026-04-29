@@ -6,12 +6,14 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
 from .models import Task
+from kart.settings import COMPANY
 
 
 # templates, cada app tiene su dir 'templates' al agregar la app en 'settings' se agregan sus dirs
 # no es necesario: 'mainapp/templates' en TEMPLATES DIRs
 
 # Create your views here.
+@login_required(login_url='login')
 def todo(request):
     tasks = Task.objects.all().order_by('-updated_at')  # '-' ordenamiento inverso o mas recientes
     #tasks = Task.objects.filter(is_completed=False)
@@ -22,6 +24,7 @@ def todo(request):
     context = {
         'title': 'Por hacer|▲▼AnyDev7',
         'tasks': tasks,
+        'COMPANY': COMPANY,
     }
     return render(request, 'home-todo.html', context)
 

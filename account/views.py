@@ -287,7 +287,7 @@ def forgot_password(request):
                 'domain': current_site,
                 'uid': urlsafe_base64_encode(force_bytes(user.pk)),
                 'token': default_token_generator.make_token(user),
-                'company': 'AP Equipos Integrados SA CV',
+                'company': COMPANY,
             })
             to_email = email
             send_email = EmailMessage(mail_subject, mail_message, to=[to_email])
