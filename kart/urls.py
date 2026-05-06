@@ -23,7 +23,7 @@ from kart.settings import COMPANY
 
 urlpatterns = [
     path('admin/', include('admin_honeypot.urls', namespace='admin_honeypot')),
-    path('avipork_adm/', admin.site.urls), #cambiar nombre al url default de 'admin'
+    path('laundry_adm/', admin.site.urls), #cambiar nombre al url default de 'admin'
     path('', mainapp.views.home),
     path('home/', mainapp.views.home, name='home'),
     path('store/', include('store.urls') ),

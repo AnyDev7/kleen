@@ -11,6 +11,8 @@
         {% include "mainapp/includes/dashboard_sidebar.html" %}
         <main class="col-md-9">
             <article class="card" style="background: #f5f5f5">
+            <form action="{% url 'payment_deferred' %}" method="POST">
+            {% csrf_token %}
             <header class="card-header">
                 {% include "mainapp/includes/alerts.html" %}
                 <strong class="d-inline-block mr-3">Mis órdenes</strong>
@@ -42,6 +44,7 @@
                                         {% elif order.status == 'Enviada'  %} style="color: #4CBB17;"
                                         {% elif order.status == 'Cancelada'  %} style="color: #E52B50;"
                                         {% elif order.status == 'Nueva' or 'New' %} style="color: #FEBE10;"
+                                        {% elif order.status == 'No Pagada' %} style="color: #ee7b1e;"
                                         {% endif %} ><b>{{order.status}}</b></span> <br>
                                         <small><span class="price text-muted small">
                                             
@@ -53,8 +56,15 @@
                                             </span></small>
                                         
                                     </td>  <!--https://cssgradient.io/shades-of-green/-->
-                                    <td width="250"> <a href="#" class="btn btn-outline-primary">Rastrear envío</a>
-                                        <a href=" {% url "order_detail" order.id %} " class="btn btn-outline-info"> Detalles </a> 
+                                    <td width="250"> 
+                                        <a href="#" class="btn btn-primary">Rastrear envío</a>
+                                        <a href=" {% url "order_detail" order.id %} " class="btn btn-info "> Detalles </a> 
+                                        
+                                        {% if not order.status == 'Pagada' %}
+                                        <div>
+                                            <button type="submit" name="pay" value="{{order.number}}" class="btn btn-warning btn-block"> Pagar ${{order.total|floatformat:"2g" }}</button>
+                                        </div>
+                                        {% endif %}
                                     </td>
                                 </tr>
                                 {% endfor %}
@@ -64,7 +74,7 @@
                     </div>
                 </div> <!-- row.// -->
             </div> <!-- card-body .// -->
-            
+            </form>
             </article> <!-- order-group.// --> 
         </main>
     </div> <!-- row.// -->

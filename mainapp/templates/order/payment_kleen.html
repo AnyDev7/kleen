@@ -39,7 +39,7 @@
 			<div class="form-row">
 				<div class="col form-group">
 					<div class="form-check">
-						<input value="cash" class="form-check-input" type="radio" name="payment" id="pickup" checked>
+						<input value="cash" class="form-check-input" type="radio" name="payment" id="cash" checked>
 						<label class="form-check-label" for="delivery">
 							<span style="color: black;" > Efectivo </span>
 						</label>
@@ -49,7 +49,7 @@
 			<div class="form-row">
 				<div class="col form-group">
 					<div class="form-check">
-						<input value="paypal" class="form-check-input" type="radio" name="payment" id="ship">
+						<input value="paypal" class="form-check-input" type="radio" name="payment" id="card">
 						<label class="form-check-label" for="delivery">
 							<span style="color: black;"> Paypal o Tarjeta</span>
 						</label>
@@ -166,13 +166,13 @@
 			{% endcomment %}
 			<input type="hidden" name="order_number" value="{{ order.number }}">
 			<input type="hidden" name="payment_id" value="Efectivo">
-			<button type="submit" name="submit" class="btn btn-primary btn-block"> Pagar Efectivo ${{ship_total|floatformat:"2g" }}</button>
+			<button type="submit" name="submit_cash" class="btn btn-primary btn-block"> Pagar Efectivo ${{ship_total|floatformat:"2g" }}</button>
 			<hr>
 			<div id="paypal-button-container">
 				<!-- Paypal button will load here-->
 			</div>
-		
-
+			<hr>
+			<button type="submit" name="submit_deferred" class="btn btn-warning btn-block"> Pagar después ${{ship_total|floatformat:"2g" }}</button>
 			</div>
 			
 		</div> <!-- card-body.// -->
