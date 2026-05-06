@@ -59,3 +59,15 @@ ul.thumb li img{
     height: 80px;
     border: 1px solid rgb(169, 160, 173);
 }
+
+/*Agregado para imagenes de Carousel*/
+.d-item{
+    height: 350px;
+}
+
+.d-img{
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.65);
+}
+/*Agregado para imagenes de Carousel*/
