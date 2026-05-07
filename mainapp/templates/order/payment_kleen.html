@@ -7,18 +7,20 @@
 <div class="container">
 
 <!-- ============================ COMPONENT 1 ================================= -->
-<h4 class="text-center mb-10">Revisa tu orden</h4>
+<h4 class="text-center mb-10">Revisa y paga tu orden</h4>
 <form action="{% url 'payment_cash' %}" method="POST">
 {% csrf_token %}
 <div class="row">
 <aside class="col-lg-8">
     <div class="card">
-        <h5 class="card-header">Dirección de envío</h5>
+		
+        <h5 class="card-header">{% if delivery == "pickup" %}Cliente recoge en tienda{% elif delivery == "ship" %}Dirección de envío{% endif %}</h5>
         <div class="card-body">          
-          <p class="card-text mb-0">{{order.full_name}}</p>
+          <p class="card-text mb-0">Atendió: {{order.full_name}}</p>
 		  <p class="card-text mb-0">{{order.full_address}}</p>
 		  <p class="card-text mb-0">{{order.city}}, {{order.state}}, {{order.country}}.  CP {{order.zipcode}}  </p>
-		  <p class="card-text mb-0">{{order.email}} | Tel. {{order.phone}} </p>
+		
+		  <small><p class="card-text mb-0"> Medios de atención: {{order.email}} | Tel. {{order.phone}} </p></small>
 		  {% if order.note %}  <p class="card-text mb-0"> Observaciones: <small>"{{order.note}}"</small></p>
 		  {% else %} <p class="card-text mb-0"> <small>"Sin observaciones"</small></p> 
 		  {% endif %}

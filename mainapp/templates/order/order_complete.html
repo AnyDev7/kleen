@@ -8,7 +8,7 @@
     {% if payment.status == "Completado" %}
     <h3 class="text-center">Pago exitoso, la orden está en proceso</h3>
     {% elif payment.status == "Por Cobrar" %}
-    <h3 class="text-center">Orden exitosa está en proceso</h3>
+    <h3 class="text-center">Orden exitosa en proceso</h3>
     {% endif %}
 	<br>
 	<div class="text-center">
@@ -27,7 +27,7 @@
                         <!-- Start .row -->
                         <div class="col-lg-6">
                             <!-- col-lg-6 start here -->
-                            <div class="invoice-logo"><img src=" {% static "/images/anydev7_logo.png" %}" alt="Invoice logo" style="max-height: 140px;"></div>
+                            <div class="invoice-logo"><img src=" {% static COMPANY_LOGO %}" alt="Invoice logo" style="max-height: 140px;"></div>
                         </div>
                         <!-- col-lg-6 end here -->
                         <div class="col-lg-6">
@@ -35,10 +35,10 @@
                             <div class="invoice-from">
                                 <ul class="list-unstyled text-right">
                                     <li><strong>Datos de tu compra:</strong></li>
-                                    <li>{{user.full_name}}</li>
-                                    <li>{{user.email}}</li>
-                                    <li>{{user.city}}, {{user.state}}</li>
-                                    <li>{{user.country}}</li>
+                                    <li>Atendido por: {{user.full_name}}</li>
+                                    <li><small>Medios de atención:</small></li>
+                                    <li><small>{{order.email}}</small></li>
+                                    <li><small>{{order.phone}}</small></li>
                                 </ul>
                             </div>
                         </div>
@@ -112,17 +112,21 @@
                                         </tbody>
                                         <tfoot>
                                             <tr>
-                                                <th colspan="2" class="text-right">Total producto:</th>
+                                                <th colspan="2" class="text-right">total producto:</th>
                                                 <th class="text-center">${{order.sub_total|floatformat:"2g"}}</th>
                                             </tr>
+                                            {% if order.tax > 0 %}
                                             <tr>
                                                 <th colspan="2" class="text-right">Impuestos:</th>
                                                 <th class="text-center">${{order.tax|floatformat:"2g"}}</th>
                                             </tr>
+                                            {% endif %}
+                                            {% if order.shipment %}
                                             <tr>
                                                 <th colspan="2" class="text-right">Envío:</th>
                                                 <th class="text-center">${{order.ship_cost|floatformat:"2g"}}</th>
                                             </tr>
+                                            {% endif %}
                                             <tr>
                                                 <th colspan="2" class="text-right">Total:</th>
                                                 <th class="text-center">${{order.total|floatformat:"2g"}}</th>

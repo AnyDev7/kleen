@@ -185,6 +185,13 @@ SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
 
 STATES_MX = config('STATES_MX').split(",")
 COMPANY = config('COMPANY')
+COMPANY_STREET = config('COMPANY_STREET')
+COMPANY_CITY = config('COMPANY_CITY')
+COMPANY_STATE = config('COMPANY_STATE')
+COMPANY_ZIP = config('COMPANY_ZIP')
+COMPANY_COUNTRY = config('COMPANY_COUNTRY')
+COMPANY_PHONE = config('COMPANY_PHONE') 
+COMPANY_LOGO = config('COMPANY_LOGO') 
 PROD_PER_PAGE = config('PROD_PER_PAGE')
 #OK change your .env file to: ALLOWED_CODES=AB01,AB02
 #OK then you could do: ALLOWED_CODES = os.environ.get('ALLOWED_POSTCODES').split(",")

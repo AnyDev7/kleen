@@ -4,69 +4,69 @@
 {% block content %}
 
 <!-- carousel agregado 6Mayo 2026-->
- <div id="carouselExampleCaptions" class="carousel slide" data-bs-ride="carousel">
-  <div class="carousel-indicators">
-    <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-    <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="1" aria-label="Slide 2"></button>
-    <button type="button" data-bs-target="#carouselExampleCaptions" data-bs-slide-to="2" aria-label="Slide 3"></button>
-  </div>
-  <div class="carousel-inner">
-    
-	<div class="carousel-item active d-item">
-      <img src="{% static "images/banners/carousel_girl_laundry_W.png" %}" class="d-block w-100 d-img" alt="Lavanderia Reforma">
-      <div class="carousel-caption d-none d-md-block">
-        <h5>Lavanderia Reforma Norte</h5>
-        <p>El mejor servicio de lavado en Tehuacán.</p>
-      </div>
+<div class="carousel-container"> 
+  <div id="carouselMy" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+      <button type="button" data-bs-target="#carouselMy" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+      <button type="button" data-bs-target="#carouselMy" data-bs-slide-to="1" aria-label="Slide 2"></button>
+      <button type="button" data-bs-target="#carouselMy" data-bs-slide-to="2" aria-label="Slide 3"></button>
     </div>
-    <div class="carousel-item d-item">
-      <img src="{% static "images/banners/carousel_mom_and_baby_laundry_W.png" %}" class="d-block w-100 d-img" alt="Lavanderia Reforma">
-      <div class="carousel-caption d-none d-md-block">
-        <h5>Lavanderia Reforma Norte</h5>
-        <p>Profesionales y atentos en el servicio.</p>
-      </div>
-    </div>
-	<div class="carousel-item d-item">
-      <img src="{% static "images/banners/carousel_mom_and_baby_laundry2_W.png" %}" class="d-block w-100 d-img" alt="Lavanderia Reforma">
-      <div class="carousel-caption d-none d-md-block">
-        <h5>Lavanderia Reforma Norte</h5>
-        <p>Profesionales y atentos en el servicio.</p>
-      </div>
-    </div>
+    <div class="carousel-inner">  
+        <div class="carousel-item active d-item">
+          <img src="{% static "images/banners/carousel_girl_laundry_W.png" %}" class="d-block w-100 d-img" alt="Lavanderia Reforma">
+          <div class="carousel-caption d-none d-md-block">
+            <h5>{{COMPANY}}</h5>
+            <p>El mejor servicio de lavado en Tehuacán.</p>
+          </div>
+        </div>
+        <div class="carousel-item d-item">
+          <img src="{% static "images/banners/carousel_mom_and_baby_laundry_W.png" %}" class="d-block w-100 d-img" alt="Lavanderia Reforma">
+          <div class="carousel-caption d-none d-md-block">
+            <h5>{{COMPANY}}</h5>
+            <p>Profesionales y atentos en el servicio.</p>
+          </div>
+        </div>
+        <div class="carousel-item d-item">
+          <img src="{% static "images/banners/carousel_mom_and_baby_laundry2_W.png" %}" class="d-block w-100 d-img" alt="Lavanderia Reforma">
+          <div class="carousel-caption d-none d-md-block">
+            <h5>{{COMPANY}}</h5>
+            <p>Profesionales y atentos en el servicio.</p>
+          </div>
+        </div>
 
+      
+      <button class="carousel-control-prev" type="button" data-bs-target="#carouselMy" data-bs-ride="carousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Anterior</span>
+      </button>
+      <button class="carousel-control-next" type="button" data-bs-target="#carouselMy" data-bs-ride="carousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Siguiente</span>
+      </button>
+    </div>
   </div>
-  <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleCaptions" data-bs-ride="carousel" data-bs-slide="prev">
-    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-    <span class="visually-hidden">Anterior</span>
-  </button>
-  <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleCaptions" data-bs-ride="carousel" data-bs-slide="next">
-    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-    <span class="visually-hidden">Siguiente</span>
-  </button>
 </div>
 <!-- fin carousel agregado 6Mayo 2026-->
 
-<section class="section-content padding-y bg" style="background: #e0e0e0">
-<div class="container">
+<section class="section-content padding-y bg" style="background: #e0e0e0">  
+  <div class="container">
+    <!-- ============================ COMPONENT 1 ================================= -->
+
+    <div class="row">
+      <aside class="col-lg-12">
+      <div class="card">
+        <div class="container text-center">
+          <h4 class="title-page">Crear / Actualizar el Menú</h4>
+        </div> <!-- container -->
+        <hr>
+        <a href="{% url 'create_menu' %}" class="btn btn-info btn-block">Crear Menu  <i class="fa-solid fa-ice-cream"></i></a>
+        <!--<i class="fas fa-shopping-cart"></i>-->
+      </div>
+      </aside>
+    </div>
 
 
-<!-- ============================ COMPONENT 1 ================================= -->
-
-	<div class="row">
-		<aside class="col-lg-12">
-		<div class="card">
-			<div class="container text-center">
-				<h4 class="title-page">Crear / Actualizar el Menú</h4>
-			</div> <!-- container -->
-			<hr>
-			<a href="{% url 'create_menu' %}" class="btn btn-info btn-block">Crear Menu  <i class="fa-solid fa-ice-cream"></i></a>
-			<!--<i class="fas fa-shopping-cart"></i>-->
-		</div>
-		</aside>
-	</div>
-
-
-</div> <!-- container .//  -->
+  </div> <!-- container .//  -->
 </section>
 <!-- ========================= SECTION CONTENT END// ========================= -->
 

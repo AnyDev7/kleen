@@ -60,7 +60,7 @@ ul.thumb li img{
     border: 1px solid rgb(169, 160, 173);
 }
 
-/*Agregado para imagenes de Carousel*/
+/*Agregado para imagenes y Carousel*/
 .d-item{
     height: 350px;
 }
@@ -69,5 +69,10 @@ ul.thumb li img{
     height: 100%;
     object-fit: cover;
     filter: brightness(0.65);
+}
+
+/*Carousel vacío con intención de resetear el estilo*/
+#carouselMy {
+    
 }
 /*Agregado para imagenes de Carousel*/

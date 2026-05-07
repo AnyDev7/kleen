@@ -6,7 +6,7 @@ from .forms import OrderForm
 from .models import Order, Payment, OrderProduct
 from store.models import Product
 from account.models import Address
-from kart.settings import COMPANY
+from kart.settings import COMPANY, COMPANY_STREET, COMPANY_CITY, COMPANY_STATE, COMPANY_ZIP, COMPANY_COUNTRY, COMPANY_PHONE, COMPANY_LOGO
 
 import datetime
 from django.core.mail import EmailMessage
@@ -146,6 +146,7 @@ def payment_cash(request):
                 'order': order,
                 'ordered_products': ordered_products,
                 'payment': payment,
+                'COMPANY_LOGO': COMPANY_LOGO
             }
             return render(request, "order/order_complete.html", context)
 
@@ -266,7 +267,7 @@ def place_order(request, delivery, order_note, address_id=None, total=0, quantit
         logistic_supp = 'pickup'
 
         """
-        #Obtener dirección del cliente
+        #Obtener dirección del cliente si delivery== 'ship'
         try:
             address = Address.objects.get(id=address_id)
         except Address.DoesNotExist:
@@ -311,14 +312,13 @@ def place_order(request, delivery, order_note, address_id=None, total=0, quantit
                 data.shipment = False
                 data.pickup = True
                 data.pickup_instructions = request.POST.get("pickup_instructions")
-                data.phone = current_user.phone
-                data.address_line_1 = "cliente retira en nuestra tienda"
-                data.address_line_2 = ""
-                data.phone = current_user.phone
-                data.country = current_user.country
-                data.state = current_user.state
-                data.city = current_user.city
-                data.zipcode = ""
+                data.address_line_1 = "Cliente retira en nuestra tienda:"
+                data.address_line_2 = COMPANY_STREET
+                data.phone = COMPANY_PHONE #current_user.phone
+                data.country = COMPANY_COUNTRY #current_user.country
+                data.state = COMPANY_STATE #current_user.state
+                data.city = COMPANY_CITY #current_user.city
+                data.zipcode = COMPANY_ZIP
             else:
                 data.address_line_1 = address.address_line_1
                 data.address_line_2 = address.address_line_2
@@ -372,6 +372,7 @@ def place_order(request, delivery, order_note, address_id=None, total=0, quantit
             'tax': tax,
             'g_total': g_total,
             'ship_total': ship_total,
+            'delivery': delivery,
         }
         return render(request, 'order/payment_kleen.html', context)        
     else:

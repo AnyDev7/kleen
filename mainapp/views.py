@@ -1,16 +1,18 @@
 from django.shortcuts import HttpResponse, render,redirect
 from store.models import Product, Rating
-from ecart.views import create_menu
+from kart.settings import COMPANY
 
 #from account.views import addresses
 from django.contrib.auth.decorators import login_required
 
+
 @login_required(login_url='login')
 def home(request):
+    context = {
+               'COMPANY': COMPANY,
+            }
     
-    
-    return render(request, 'mainapp/create_menu.html') # 'mainapp' subdirectorio en 'templates'
-
+    return render(request, 'mainapp/create_menu.html', context) # 'mainapp' subdirectorio en 'templates'
 
 
 
