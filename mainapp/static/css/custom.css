@@ -60,7 +60,9 @@ ul.thumb li img{
     border: 1px solid rgb(169, 160, 173);
 }
 
-/*Agregado para imagenes y Carousel*/
+/* INICIA ESTILO DE CAROUSEL BOOTSTRAP*/
+
+/*Agregado para imagenes de carousel*/
 .d-item{
     height: 350px;
 }
@@ -71,8 +73,113 @@ ul.thumb li img{
     filter: brightness(0.65);
 }
 
-/*Carousel vacío con intención de resetear el estilo*/
+/*Carousel vacío con intención de resetear el estilo by JMBS, no sirve*/
 #carouselMy {
     
+}
+
+/* Botón de control previo */
+.carousel-control-prev {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 15%;
+  padding: 0;
+  color: #fff;
+  text-align: center;
+  background: none;
+  border: 0;
+  opacity: .5;
+  transition: opacity .15s ease;
+}
+
+.carousel-control-prev:hover,
+.carousel-control-prev:focus {
+  opacity: .9;
+}
+
+/* Botón de control siguiente */
+.carousel-control-next {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 15%;
+  padding: 0;
+  color: #fff;
+  text-align: center;
+  background: none;
+  border: 0;
+  opacity: .5;
+  transition: opacity .15s ease;
+}
+
+.carousel-control-next:hover,
+.carousel-control-next:focus {
+  opacity: .9;
+}
+
+/* Iconos de flechas */
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+  display: inline-block;
+  width: 2rem;
+  height: 2rem;
+  background-repeat: no-repeat;
+  background-position: 50%;
+  background-size: 100% 100%;
+}
+
+.carousel-control-prev-icon {
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg ...chevron-left...%3C/svg%3E");
+}
+
+.carousel-control-next-icon {
+  background-image: url("data:image/svg+xml;charset=utf8,%3Csvg ...chevron-right...%3C/svg%3E");
+}
+
+/* 🔹 Indicadores (los puntitos debajo del carrusel) */
+/* Indicadores del carrusel */
+.carousel-indicators {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  padding: 0;
+  margin-right: 15%;
+  margin-left: 15%;
+  margin-bottom: 0.5%;
+}
+
+.carousel-indicators [data-bs-target] {
+  box-sizing: content-box;
+  flex: 0 1 auto;
+  width: 30px;
+  height: 3px;
+  margin-right: 3px;
+  margin-left: 3px;
+  cursor: pointer;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 0;
+  border-radius: 0;
+  opacity: .5;
+  transition: opacity .6s ease;
+}
+
+.carousel-indicators .active {
+  opacity: 1;
 }
 /*Agregado para imagenes de Carousel*/
