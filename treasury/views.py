@@ -73,7 +73,7 @@ def cr_close(request):
         #Sumar saldos en caja
         if payments_cr and last_cr and last_cr.status == "Iniciado":
             for pay in payments_cr:
-                if pay.status == 'Completado':
+                if pay.status == "Completado":
                     total_balance += pay.amount_paid
                     if pay.payment_method == "Efectivo":
                         total_cash += pay.amount_paid
@@ -86,7 +86,6 @@ def cr_close(request):
                     else:
                         total_sales += pay.amount_paid
 
-            print(f"Fecha de hoy {datetime.now()}")
             #Actualizar el corte y cerrarlo
             last_cr.incomes = total_balance
             last_cr.outcomes = 0
@@ -100,6 +99,7 @@ def cr_close(request):
             # y causar confusión → mejor usar timezone.now() en Django de tu TIME_ZONE.
             last_cr.save()
             last_cr.final_balance = last_cr.initial_balance + last_cr.incomes - last_cr.outcomes
+            last_cr.total_cash = last_cr.initial_balance + last_cr.cash_balance
             last_cr.status = "Cerrado"
             last_cr.save()
         else:
@@ -120,3 +120,19 @@ def cr_close(request):
         'COMPANY_LOGO': COMPANY_LOGO
     }
     return render(request, 'treasury/cr_close.html', context) # 'treasury' subdirectorio en 'templates'
+
+def my_cr_closes(request):
+
+    try:
+        cr_closes = CRClosing.objects.order_by('-start_at').filter(user_id = request.user.id)
+        # Unir o sumar queryset's : https://stackoverflow.com/questions/29587382/how-to-add-an-model-instance-to-a-django-queryset
+        #orderproducts = OrderProduct.objects.filter(user__id=request.user.id, ordered=True)
+        context = {
+            'cr_closes': cr_closes,
+            #'orderproducts': orderproducts,
+        }
+    except Exception as e:
+        print("Error capturado:", e)
+        messages.warning(request, f"Error capturado: {e}")
+        return redirect('dashboard')
+    return render(request, "treasury/my_cr_closes.html", context)

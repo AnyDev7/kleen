@@ -52,19 +52,20 @@ class CRClosing(models.Model):
 
     #number = models.CharField("Orden", max_length=20)
     
-    initial_balance = models.FloatField("Saldo inicial")
-    incomes = models.FloatField("Total ingresos", null=True)
-    outcomes = models.FloatField("Total salidas", null=True)
-    sales = models.FloatField("Total ventas", null=True)
-    taxes = models.FloatField("Total impuestos", null=True)
-    cash_balance = models.FloatField("Total efectivo", null=True)
-    card_balance = models.FloatField("Total tarjetas", null=True)
-    transfer_balance = models.FloatField("Total transferencias", null=True)
-    collect_balance = models.FloatField("Total cobranza", null=True)
-    final_balance = models.FloatField("Saldo final", null=True)
+    initial_balance = models.FloatField("Saldo inicial", null=True, default=0)
+    incomes = models.FloatField("Total ingresos", null=True, default=0)
+    outcomes = models.FloatField("Salidas de caja", null=True, default=0)
+    sales = models.FloatField("Ingresos del día", null=True, default=0)
+    taxes = models.FloatField("Total impuestos", null=True, default=0)
+    cash_balance = models.FloatField("Ingresos efectivo", null=True, default=0)
+    card_balance = models.FloatField("Ingresos tarjetas", null=True, default=0)
+    transfer_balance = models.FloatField("Ingresos transferencias", null=True, default=0)
+    collect_balance = models.FloatField("Cobranza", null=True, default=0)
+    final_balance = models.FloatField("Saldo final", null=True, default=0)
+    total_cash = models.FloatField("Saldo efectivo", null=True, default=0)
     status = models.CharField("Estatus", max_length=15, choices=STATUS, default="Iniciado")
-    start_at = models.DateTimeField("Iniciado", auto_now_add=True)
-    end_at = models.DateTimeField("Finalizado", auto_now=True)
+    start_at = models.DateTimeField("Inicio", auto_now_add=True)
+    end_at = models.DateTimeField("Finalizo", auto_now=True)
 
     class Meta:
         verbose_name = 'Corte'

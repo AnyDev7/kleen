@@ -1,0 +1,105 @@
+{% extends "mainapp/layout.html" %}
+{% load static %}
+
+{% block content %}
+<!-- ========================= SECTION CONTENT ========================= -->
+<section class="section-conten padding-y bg" style="background: #e0e0e0;">
+
+    <div class="container">
+        <div class="row">
+        <!--aside-->
+        {% include "mainapp/includes/dashboard_sidebar.html" %}
+        <main class="col-md-9">
+            <article class="card" style="background: #f5f5f5">
+            <form action="{% url 'payment_deferred' %}" method="POST">
+            {% csrf_token %}
+            <header class="card-header">
+                {% include "mainapp/includes/alerts.html" %}
+                <strong class="d-inline-block mr-3">Mis órdenes</strong>
+            </header>
+            <div class="card-body">
+                <div class="row"> 
+                    <div class="col-md-12">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                {% if not cr_closes %}
+                                <p class="title mb-0">No hay cortes de caja de este usuario: {{user.full_name}}</p>
+                                <br>
+                                <a href="{% url 'logout' %}" class="btn  btn-primary"> <span class="text">Salir, inicia un corte</span> <i class="fas fa-shopping-cart"></i></a>
+                                {% else %}
+                                {% for cr_close in cr_closes %}
+                                <tr>
+                                    {% comment "Como mostrar solo la 1er imagen del set orderproducts de cada order" %}
+                                    <td width="65">
+                                        {% for image in orderproducts %}
+                                            {% if image.order.id == order.id %}
+                                                <img src="{{image.product.image1.url}}" class="img-xs border">
+                                            {% endif %}
+                                        {% endfor %}
+                                        <img src="{{orderproducts.0.product.image1.url}}" class="img-xs border">
+                                    </td>
+                                    
+                                    {% endcomment %}
+                                    <td class="text-right">
+                                        <var class="price text-muted text-right">Saldo total: ${{cr_close.final_balance|floatformat:"2g"}}</var> 
+                                        <var class="price text-muted text-right">Efectivo: ${{cr_close.total_cash|floatformat:"2g"}}</var> 
+                                    </td>
+                                    <td>
+                                        <span {% if cr_close.status == 'Iniciado' %} style="color: #17B169;"
+                                        {% elif cr_close.status == 'Cerrado'  %} style="color: #007FFF;" 
+                                        {% endif %} ><b>{{cr_close.status}} <small> | Corte del  {{cr_close.start_at}} {% if cr_close.status == 'Cerrado'  %} al {{cr_close.end_at}}{% endif %}</span></small></b></span> <br>
+                                        <small><span class="price text-muted small">
+                                        <var class="price text-muted">Inicial </var>
+                                        ${{cr_close.initial_balance|floatformat:"2g"}} 
+                                        <var class="price text-muted">+ Ingresos efectivo </var>
+                                        ${{cr_close.cash_balance|floatformat:"2g"}} 
+                                        <var class="price text-muted">+ Ingresos transf. </var>
+                                        ${{cr_close.transfer_balance|floatformat:"2g"}}
+                                        <var class="price text-muted">+ Ingresos tarjeta </var>
+                                        ${{cr_close.card_balance|floatformat:"2g"}}
+                                        <var class="price text-muted">- Salidas </var>
+                                        ${{cr_close.outcomes|floatformat:"2g"}} =
+                                        <var class="price text-muted">Saldo total </var>
+                                        ${{cr_close.final_balance|floatformat:"2g"}} --
+                                        <var class="price text-muted">Ingresos del día: </var>
+                                        ${{cr_close.sales|floatformat:"2g"}} |
+                                        <var class="price text-muted">Cobranza: </var>
+                                        ${{cr_close.collect_balance|floatformat:"2g"}} |
+                                        <var class="price text-muted">Total ingresos: </var>
+                                        ${{cr_close.incomes|floatformat:"2g"}} |
+                                        <var class="price text-muted">Saldo efectivo: </var>
+                                        ${{cr_close.total_cash|floatformat:"2g"}} |
+                                        </span></small>
+                                        
+                                        
+                                    </td>  <!--https://cssgradient.io/shades-of-green/-->
+                                    {% comment "No se necesitan botones" %}
+                                    <td width="250"> 
+                                        <a href="#" class="btn btn-primary">Rastrear envío</a>
+                                        <a href=" {% url "order_detail" order.id %} " class="btn btn-info "> Detalles </a> 
+                                        
+                                        {% if not order.status == 'Pagada' %}
+                                        <div class="form-group">
+                                            <button type="submit" name="pay" value="{{order.number}}" class="btn btn-warning btn-block mt-1"> Pagar ${{order.total|floatformat:"2g" }}</button>
+                                        </div>
+                                        {% endif %}
+                                    </td>
+                                    {% endcomment %}
+                                </tr>
+                                {% endfor %}
+                                {% endif %}
+                            </table>
+                        </div> <!-- table-responsive .end// -->
+                    </div>
+                </div> <!-- row.// -->
+            </div> <!-- card-body .// -->
+            </form>
+            </article> <!-- order-group.// --> 
+        </main>
+    </div> <!-- row.// -->
+    </div> <!-- container-->
+    
+    
+</section>
+    <!-- ========================= SECTION CONTENT END// ========================= -->
+{% endblock content %}
