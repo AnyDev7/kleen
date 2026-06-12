@@ -47,7 +47,7 @@
                                     <td>
                                         <span {% if cr_close.status == 'Iniciado' %} style="color: #17B169;"
                                         {% elif cr_close.status == 'Cerrado'  %} style="color: #007FFF;" 
-                                        {% endif %} ><b>{{cr_close.status}} <small> | Corte del  {{cr_close.start_at}} {% if cr_close.status == 'Cerrado'  %} al {{cr_close.end_at}}{% endif %}</span></small></b></span> <br>
+                                        {% endif %} ><b>{{cr_close.status}}</b> <small> | Corte del  {{cr_close.start_at}} {% if cr_close.status == 'Cerrado'  %} al {{cr_close.end_at}}{% endif %}</small></span> <br>
                                         <small><span class="price text-muted small">
                                         <var class="price text-muted">Inicial </var>
                                         ${{cr_close.initial_balance|floatformat:"2g"}} 
