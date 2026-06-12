@@ -27,16 +27,16 @@ def get_first_key(dictionary):
 
 @login_required(login_url='login')
 def create_menu(request, flag=False, qty=0):
-    # Clear Cart o comparar item by item
-    CartItem.objects.filter(user=request.user).delete()
     product = None
     cart = None
     cart_item = None
     cart_item_exists = None
     current_user = request.user
-    #Cargar con bucle todos los productos en el ecart, sesión actual.
     try:
+        # Clear Cart o comparar item by item
+        CartItem.objects.filter(user=request.user).delete()
         products = Product.objects.all().filter(is_available=True)
+        #Cargar con bucle todos los productos en el ecart, sesión actual.
         for product in products:            
             try:
                 cart = Cart.objects.get(cart_id=_cart_id(request)) # Conseguir el Cart actual con la cart_id de la sesion actual        
@@ -58,16 +58,9 @@ def create_menu(request, flag=False, qty=0):
                 cart_item.quantity = 0
                 cart_item.user=current_user
                 # Increase cart item quantity con boton +, o reduce con botón -
-                if flag:
-                    cart_item.quantity += 1
-                else:
-                    if cart_item.quantity >= 1:
-                        cart_item.quantity -= 1
-
                 cart_item.save()
-
             else:
-                cart_item = CartItem.objects.create(user=current_user, product=product, cart=cart, quantity=qty)
+                cart_item = CartItem.objects.create(user=current_user, product=product, cart=cart, quantity=0)
                 cart_item.save()
     except:
         None

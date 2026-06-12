@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'todo',
     'order',
     'admin_honeypot',
+    'treasury',
 ]
 
 MIDDLEWARE = [
@@ -190,8 +191,14 @@ COMPANY_CITY = config('COMPANY_CITY')
 COMPANY_STATE = config('COMPANY_STATE')
 COMPANY_ZIP = config('COMPANY_ZIP')
 COMPANY_COUNTRY = config('COMPANY_COUNTRY')
-COMPANY_PHONE = config('COMPANY_PHONE') 
-COMPANY_LOGO = config('COMPANY_LOGO') 
+COMPANY_PHONE = config('COMPANY_PHONE')
+COMPANY_LOGO = config('COMPANY_LOGO')
+COMPANY_BANN1 = config('COMPANY_BANN1')
+COMPANY_BANN2 = config('COMPANY_BANN2')
+COMPANY_BANN3 = config('COMPANY_BANN3')
+COMPANY_SLOGAN = config('COMPANY_SLOGAN')
+COMPANY_SLOG_SUB1 = config('COMPANY_SLOG_SUB1')
+COMPANY_SLOG_SUB2 = config('COMPANY_SLOG_SUB2')
 PROD_PER_PAGE = config('PROD_PER_PAGE')
 #OK change your .env file to: ALLOWED_CODES=AB01,AB02
 #OK then you could do: ALLOWED_CODES = os.environ.get('ALLOWED_POSTCODES').split(",")

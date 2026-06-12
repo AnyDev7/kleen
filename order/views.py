@@ -1,5 +1,6 @@
 import json
 from django.shortcuts import render, HttpResponse, redirect, get_object_or_404
+from django.contrib import messages
 
 from ecart.models import CartItem
 from .forms import OrderForm
@@ -15,8 +16,27 @@ from django.http import JsonResponse
 
 from django.views.decorators.csrf import csrf_protect #CHECAR 15ABR2026
 
+
+#Función para pagar ordenes cobradas desde "Mis Ordenes"
+# Sustituye payment_deferred y manda a pagar a payment_kleen.html
+def collect_pay(request):
+    order = get_object_or_404(Order,user=current_user, number=order_number, is_ordered=False)
+    context = {
+        'order': order,
+        'cart_items': cart_items,
+        'total': total,
+        'ship_cost': ship_cost,
+        'tax': tax,
+        'g_total': g_total,
+        'ship_total': ship_total,
+        'delivery': delivery,
+    }
+    return render(request, 'order/payment_kleen.html', context)
+
+
 def payment_deferred(request):
     if "pay" in request.POST:
+
         order_number = request.POST.get("pay")
         print(f"Order Number: 'order_number', Existe: {order_number}") # OK funciona
         try:
@@ -33,6 +53,7 @@ def payment_deferred(request):
             payment.status = "Completado"
             order.save()
             payment.save()
+            messages.success(request, f'¡Pago exitoso!')
             context = {
                     'order': order,
                     'ordered_products': ordered_products,
@@ -45,20 +66,25 @@ def payment_deferred(request):
     else:
         return redirect('my_orders')
 
+
 @csrf_protect #CHECAR 15Abr2026
 def payment_cash(request):
     if request.method == 'POST':
+        # body = json.loads(request.body) #pago con paypal o card
+
         #Obtener datos del request POST
-        type_payment = request.POST.get('payment') # viene de option radio  name=payment cash or card
+        type_payment = request.POST.get('type_payment') # viene de option radio  name=type_payment cash or card
         payment_id = request.POST.get('payment_id')
         order_number = request.POST.get('order_number')
-        if type_payment == 'cash': 
-            payment_id = type_payment + order_number
-        else:
-            payment_id = type_payment + order_number # o pago con paypal o tarjeta
+        payment_method = 'Efectivo'
+        payment_id = type_payment + order_number
+        
+        if type_payment == 'transfer':
+            payment_method = 'Transferencia'
+        elif type_payment == 'paypal':
+            payment_method = 'Paypal'
 
-        # body = json.loads(request.body) #pago con paypal o card
-        order_exist = Order.objects.filter(user=request.user, number=order_number)
+        order_exist = Order.objects.filter(user=request.user, number=order_number).exists()
         print(f"Orden: {order_number}, Existe:{order_exist}")
         order = get_object_or_404(Order, user=request.user, is_ordered=False, number=order_number)
         
@@ -67,24 +93,27 @@ def payment_cash(request):
             payment = Payment(
                 user = request.user,
                 payment_id = payment_id, #request.POST.get('payment_id'), #En el modelo Payment, payment_id no es un indice
-                payment_method = "Cash",
+                payment_method = payment_method,
                 amount_paid = order.total,  #float(body['payment_amount']), #Order model: order.total
-                #currency = body['payment_currency'], # Aún no queda el POST en el script de payment.html
                 status = "Completado",
             )
             payment.save()
+
             order.payment = payment  # Foreign_key se asigna el objeto completo al campo ForeignKey
             order.is_ordered = True
-
             if "submit_cash" in request.POST: #Pago con efectivo al momento
                 order.status = "Pagada"
+                order.paid_at = payment.created_at
                 print(f"Submit Cash: 'submit_cash', Existe:{request.POST}")
             elif "submit_deferred" in request.POST: #Pago en efectivo diferido
                 order.status = "No Pagada"
+                order.paid_at = None
+                payment.payment_method = "Por Cobrar"
                 payment.status = "Por Cobrar"
                 payment.save()
                 print(f"Submit Deferred: 'submit_deferred', Existe:{request.POST}")
                 print(f"Payment Status: 'payment.status', Existe:{payment.status}")
+                print(f"Payment Status: 'order.paid_at', Existe:{order.paid_at}")
             else:
                 order.status = "Pagada"
             
@@ -134,10 +163,12 @@ def payment_cash(request):
             send_email = EmailMessage(mail_subject, mail_message, to=[to_email])
             send_email.send()
 
-        except:
-            None #Agregar manejo de excepciones 
+        except Exception as e:
+            print("Error capturado:", e)
+            messages.error(request, f'No se registró su orden. {e}')
+            redirect('ecart')
 
-        #Agregado 20Abr 2026
+        
         try:
             order = Order.objects.get(number=order_number, is_ordered=True)
             ordered_products = OrderProduct.objects.filter(order_id=order.id).exclude(quantity=0)
@@ -150,8 +181,10 @@ def payment_cash(request):
             }
             return render(request, "order/order_complete.html", context)
 
-        except (Payment.DoesNotExist, Order.DoesNotExist):
-            None #return redirect('home')
+        except Exception as e :
+            print("Error capturado:", e)
+            messages.error(request, f'No existe orden o pago. {e}')
+            redirect('ecart')
         #redirect('order_complete') comentado 20Abr 2026
         
     else:
@@ -179,6 +212,7 @@ def payment(request):
             order.payment = payment  # Foreign_key se asigna el objeto completo al campo ForeignKey
             order.is_ordered = True
             order.status = "Pagada"
+            order.paid_at = payment.created_at
             order.save()
 
             # Move cart items to OrderProduct table 
@@ -379,6 +413,7 @@ def place_order(request, delivery, order_note, address_id=None, total=0, quantit
         return redirect('checkout')
 
 
+#Función para usarse con json y Paypal
 def order_complete(request):
     order_number = request.GET.get('order_number')
     payment_id = request.GET.get('payment_id')
@@ -394,7 +429,7 @@ def order_complete(request):
         return render(request, "order/order_complete.html", context)
     
     except (Payment.DoesNotExist, Order.DoesNotExist):
-        None #return redirect('home')
+        return redirect('home')
 
     
 

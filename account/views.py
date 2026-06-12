@@ -210,16 +210,16 @@ def login(request):
             except:
                 pass
             auth.login(request, user)
-            messages.success(request, "Bienvenido a tu cuenta")
+            #messages.success(request, "Bienvenido a tu cuenta")
             url = request.META.get('HTTP_REFERER')
-            #messages.success(request, url) # Quitar
             try:
                 query = requests.utils.urlparse(url).query
                 # looking for ej => 'next=/cart/checkout/'
                 params = dict(x.split('=') for x in query.split('&'))
                 if 'next' in params:
-                    next_page = params['next']
-                    messages.success(request, "Para pagar tu orden, revisa tus datos")
+                    next_page = params['next'] # ej. next_page = '/home/'
+                    if next_page == '/checkout/':  #agregado 10 Junio 2026
+                        messages.success(request, "Para pagar tu orden, revisa los datos")
                     return redirect(next_page)
             except:
                 return redirect('dashboard')
@@ -232,9 +232,9 @@ def login(request):
 @login_required(login_url = 'login')
 def logout(request):
     auth.logout(request)
-    messages.success(request,"¡Saliste de tu cuenta!")
+    #messages.success(request,"¡Saliste de tu cuenta!")
 
-    return redirect('login')
+    return redirect('home')
 
 def activate(request, uidb64, token):
     try:

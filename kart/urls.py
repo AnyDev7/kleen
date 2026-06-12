@@ -26,6 +26,7 @@ urlpatterns = [
     path('laundry_adm/', admin.site.urls), #cambiar nombre al url default de 'admin'
     path('', mainapp.views.home),
     path('home/', mainapp.views.home, name='home'),
+    path('treasury/', include('treasury.urls') ),
     path('store/', include('store.urls') ),
     path('ecart/', include('ecart.urls')),
     path('', include('todo.urls')),

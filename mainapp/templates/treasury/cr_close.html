@@ -5,18 +5,18 @@
 
 <div class="container" style="margin-top: 50px;">
     <center><i class="fas fa-check-circle" style="font-size: 72px; margin-bottom: 20px; color: #28A745;"></i></center>
-    {% if payment.status == "Completado" %}
-    <h3 class="text-center">Pago exitoso, la orden está en proceso</h3>
-    {% elif payment.status == "Por Cobrar" %}
-    <h3 class="text-center">Orden exitosa en proceso</h3>
+    {% if last_cr.incomes > 0 %}
+    <h3 class="text-center">Corte exitoso</h3>
+    {% else %}
+    <h3 class="text-center">Sin ingresos ni cobros</h3>
     {% endif %}
 	<br>
 	<div class="text-center">
-		<a href="{% url 'store' %}" class="btn btn-primary">Ver tienda</a>
+		<a href="{% url 'logout' %}" class="btn btn-primary">Salir</a>
 	</div>
 </div>
 
-<div class="container" style="margin: 0 auto;width: 50%;padding: 50px;background: #ebe3e3;margin-top: 50px;margin-bottom: 50px;">
+<div class="container" style="margin: 0 auto;width: 40%;padding: 50px;background: #e7dcdc;margin-top: 50px;margin-bottom: 50px;">
     <div class="row invoice row-printable">
         <div class="col-md-12">
             <!-- col-lg-12 start here -->
@@ -25,64 +25,110 @@
                 <div class="panel-body p30">
                     <div class="row">
                         <!-- Start .row -->
-                        <div class="col-lg-6">
+                        <div class="col-lg-5">
                             <!-- col-lg-6 start here -->
                             <div class="invoice-logo"><img src=" {% static COMPANY_LOGO %}" alt="Invoice logo" style="max-height: 140px;"></div>
                         </div>
                         <!-- col-lg-6 end here -->
-                        <div class="col-lg-6">
+                        <div class="col-lg-7">
                             <!-- col-lg-6 start here -->
                             <div class="invoice-from">
                                 <ul class="list-unstyled text-right">
-                                    <li><strong>Datos de tu compra:</strong></li>
-                                    <li>Atendido por: {{user.full_name}}</li>
-                                    <li><small>Medios de atención:</small></li>
-                                    <li><small>{{order.email}}</small></li>
-                                    <li><small>{{order.phone}}</small></li>
+                                    <li><strong>Datos del corte</strong></li>
+                                    <li><b>Usuario:</b> {{user.full_name}}</li>
+                                    <li><b>Caja:</b> {{last_cr.cashregister_id}}</li>
+                                    <li><small>fecha:</small></li>
+                                    <li><small><b>Inicio:</b> {{last_cr.start_at}}</small></li>
+                                    <li><small><b>Finaliza:</b> {{last_cr.end_at}}</small></li>
                                 </ul>
                             </div>
                         </div>
                         <!-- col-lg-6 end here -->
+                        
                         <div class="col-lg-12">
+                            <hr>
                             <!-- col-lg-12 start here -->
                             <div class="invoice-details mt25">
                                 <div class="well">
-                                    <ul class="list-unstyled mb0">
-                                        <li><strong>Orden: </strong> {{order.number}}</li>
-                                        <li><strong>Pago ID: </strong> {{payment.payment_id}}</li>
-                                        <li><strong>Fecha: </strong> {{order.created_at}}</li>
-                                        <li><strong>Estatus: </strong> {{order.status}}</li>
-                                    </ul>
+                                    
                                 </div>
-                                {% if order.pickup %}
                                 <div class="card-body">
                                     <div class="form-row">
                                         <div class="form-group col-md-6 text-left">
-                                            <b><label for="">Instrucciones para retiro:</label></b> <br>
-                                            <span> <small>"{{order.pickup_instructions}}" </small> </span>
+                                            <b><label for="">Fondo inicial caja:</label></b>
                                         </div>
                                         <div class="form-group col-md-6 text-right">
-                                            <b><label for="">Proveedor logístico:</label></b> <br>
-                                            <span> "{{order.logistic_supp}}" </span>
+                                            <span> ${{last_cr.initial_balance|floatformat:"2g"}} </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6 text-left">
+                                            <b><label for="">Ingresos efectivo:</label></b>
+                                        </div>
+                                        <div class="form-group col-md-6 text-right">
+                                            <span> + ${{last_cr.cash_balance|floatformat:"2g"}} </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6 text-left">
+                                            <b><label for="">Ingresos transferencia:</label></b>
+                                        </div>
+                                        <div class="form-group col-md-6 text-right">
+                                            <span> + ${{last_cr.transfer_balance|floatformat:"2g"}} </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6 text-left">
+                                            <b><label for="">Ingresos Paypal/TC/TD:</label></b>
+                                        </div>
+                                        <div class="form-group col-md-6 text-right">
+                                            <span> + ${{last_cr.card_balance|floatformat:"2g"}} </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6 text-left">
+                                            <b><label for="">Salidas de caja:</label></b>
+                                        </div>
+                                        <div class="form-group col-md-6 text-right">
+                                            <span> - ${{last_cr.outcomes|floatformat:"2g"}} </span>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6 text-left">
+                                            <b><label for="">Saldo total en caja:</label></b>
+                                        </div>
+                                        <div class="form-group col-md-6 text-right">
+                                            <span> ${{last_cr.final_balance|floatformat:"2g"}} </span>
                                         </div>
                                     </div>
                                 </div>
-                                {% elif order.shipment %}
+                                {% if last_cr.incomes > 0 %}
                                 <div class="card-body">
                                     <div class="form-row">
                                         <div class="form-group col-md-6 text-left">
-                                            <b><label for="">Se envia por paquetería:</label></b> <br>
-                                            <span> <small> "{{order.note}}" </small></span>
+                                            <b><label for="">Ingresos del día:</label></b> <br>
+                                            <span> ${{last_cr.sales|floatformat:"2g"}} </span>
                                         </div>
                                         <div class="form-group col-md-6 text-right">
-                                            <b><label for="">Proveedor logístico:</label></b> <br>
-                                            <span> {{order.logistic_supp}} </span>
+                                            <b><label for="">Cobranza:</label></b> <br>
+                                            <span> ${{last_cr.collect_balance|floatformat:"2g"}} </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6 text-left">
+                                            <b><label for="">Total ingresos:</label></b> <br>
+                                            <span> ${{last_cr.incomes|floatformat:"2g"}} </span>
+                                        </div>
+                                        <div class="form-group col-md-6 text-right">
+                                            <b><label for="">Saldo efectivo:</label></b> <br>
+                                            <span> ${{total_cash|floatformat:"2g"}} </span>
                                         </div>
                                     </div>
                                 </div>
                                 {% endif %}
                             </div>
-                           
+                           {% comment "" %}
                             <div class="invoice-items">
                                 <div class="table-responsive" style="overflow: hidden; outline: none;" tabindex="0">
                                     <table class="table table-bordered">
@@ -134,9 +180,13 @@
                                         </tfoot>
                                     </table>
                                 </div>
-                            </div>
+                            </div> <!-- invoice items -->
+                            {% endcomment %}
                             <div class="invoice-footer mt25">
-                                <p class="text-center">Gracias por tu compra</p>
+                                <p class="text-center">Corte realizado</p>
+                            </div>
+                            <div class="text-center">
+                                <a href="{% url 'logout' %}" class="btn btn-primary">Salir</a>
                             </div>
                         </div>
                         <!-- col-lg-12 end here -->

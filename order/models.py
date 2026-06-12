@@ -24,13 +24,26 @@ class Customer(models.Model):
         return self.name
 
 class Payment(models.Model):
+    PAYMENT_METHOD = (
+        ('Paypal', 'Paypal'),
+        ('Cash', 'Efectivo'),
+        ('Transfer', 'Transferencia'),
+    )
+
+    STATUS = (
+        ('Completed', 'Completado'),
+        ('Deferred', 'Por Cobrar'),
+        ('Canceled', 'Cancelado'),
+    )
     user = models.ForeignKey(Account, verbose_name='Usuario', on_delete=models.CASCADE)
     payment_id = models.CharField("Pago", max_length=100)
-    payment_method = models.CharField("Método de Pago", max_length=100)
-    amount_paid = models.CharField("Importe", max_length=100)
+    payment_method = models.CharField("Método de Pago", max_length=25, choices=PAYMENT_METHOD)
+    amount_paid = models.FloatField("Importe", max_length=100)
     currency = models.CharField("Moneda", max_length=4, default="MXN")
-    status = models.CharField("Estatus", max_length=100)
+    status = models.CharField("Estatus", max_length=25, choices=STATUS)
     created_at = models.DateTimeField("Creado", auto_now_add=True)
+    canceled_at = models.DateTimeField("Creado", blank=True, null=True)
+    collect = models.BooleanField("Cobranza", default=False)
 
     class Meta:
         verbose_name = 'Pago'
@@ -41,12 +54,12 @@ class Payment(models.Model):
 
 class Order(models.Model):
     STATUS = (
-        ('Recibida', 'Nueva'),
-        ('Pagada', 'Pagada'),
-        ('Aceptada', 'Aceptada'),
-        ('Enviada', 'Enviada'),
-        ('Completada', 'Completada'),
-        ('Cancelada', 'Cancelada'),
+        ('New', 'Nueva'),
+        ('Paid', 'Pagada'),
+        ('Allocated', 'Aceptada'),
+        ('Sent', 'Enviada'),
+        ('Finished', 'Completada'),
+        ('Canceled', 'Cancelada'),
     )
     user = models.ForeignKey(Account, verbose_name='Usuario', on_delete=models.SET_NULL, null=True)
     payment = models.ForeignKey(Payment, verbose_name='Pago', on_delete=models.SET_NULL, null=True, blank=True)
@@ -77,6 +90,7 @@ class Order(models.Model):
     #logistic_supp = models.ForeignKey(Logistic, verbose_name='Proveedor de logística', on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField("Creada", auto_now_add=True)
     updated_at = models.DateTimeField("Actualizada", auto_now=True)
+    paid_at = models.DateTimeField("Pagado el", blank=True, null=True)
 
     class Meta:
         verbose_name = 'Orden'

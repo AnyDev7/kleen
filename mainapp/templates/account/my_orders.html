@@ -29,9 +29,16 @@
                                 {% else %}
                                 {% for order in orders %}
                                 <tr>
+                                    {% comment "Como mostrar solo la 1er imagen del set orderproducts de cada order" %}
                                     <td width="65">
-                                        <img src="{{order.product.image1.url}}" class="img-xs border">
+                                        {% for image in orderproducts %}
+                                            {% if image.order.id == order.id %}
+                                                <img src="{{image.product.image1.url}}" class="img-xs border">
+                                            {% endif %}
+                                        {% endfor %}
+                                        <img src="{{orderproducts.0.product.image1.url}}" class="img-xs border">
                                     </td>
+                                    {% endcomment %}
                                     <td> 
                                         <p class="title mb-0">Orden: {{order.number}} </p>
                                         <var class="price text-muted">${{order.total|floatformat:"2g"}}</var> 
@@ -47,13 +54,17 @@
                                         {% elif order.status == 'No Pagada' %} style="color: #ee7b1e;"
                                         {% endif %} ><b>{{order.status}}</b></span> <br>
                                         <small><span class="price text-muted small">
-                                            
+                                        {% if not orderproducts %}
+                                            <var class="price text-muted">Orden no tiene productos</var> 
+                                        {% else %}
                                             {% for item in orderproducts %}
-                                               {% if item.order.id == order.id %}
-                                               | {{item.product.name}}
+                                                {% if item.order.id == order.id %}
+                                                | {{item.product.name}}
                                                 {% endif %}
                                             {% endfor %}
-                                            </span></small>
+                                        {% endif %}
+                                        </span></small>
+                                        
                                         
                                     </td>  <!--https://cssgradient.io/shades-of-green/-->
                                     <td width="250"> 
@@ -61,8 +72,8 @@
                                         <a href=" {% url "order_detail" order.id %} " class="btn btn-info "> Detalles </a> 
                                         
                                         {% if not order.status == 'Pagada' %}
-                                        <div>
-                                            <button type="submit" name="pay" value="{{order.number}}" class="btn btn-warning btn-block"> Pagar ${{order.total|floatformat:"2g" }}</button>
+                                        <div class="form-group">
+                                            <button type="submit" name="pay" value="{{order.number}}" class="btn btn-warning btn-block mt-1"> Pagar ${{order.total|floatformat:"2g" }}</button>
                                         </div>
                                         {% endif %}
                                     </td>

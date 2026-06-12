@@ -44,10 +44,10 @@ class MyAccountManager(BaseUserManager):
 # https://docs.djangoproject.com/en/5.0/ref/forms/widgets/
 # https://stackoverflow.com/questions/15393134/django-how-can-i-create-a-multiple-select-form
 
-STATESMX = ( # Por checar o borrar / Debe ser una tupla para el parámetro 'choices'
-    ('Puebla', 'Puebla'),
-    ('CDMX', 'CDMX'),
-)
+#STATESMX = ( # Por checar o borrar / Debe ser una tupla para el parámetro 'choices'
+#    ('Puebla', 'Puebla'),
+#    ('CDMX', 'CDMX'),
+#)
 
 
 class Account(AbstractBaseUser):
