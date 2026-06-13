@@ -19,14 +19,13 @@ def check_cr(request):
         #last_crclosing1 = CRClosing.objects.order_by('-start_at').first()
         #last_crclosing2 = CRClosing.objects.latest('start_at')
         if not cr_opened:
-            print(f"No hay registros, BD nueva")
+            #No hay registros, BD nueva
             return False, False
-        
         if cr_opened.status == "Cerrado":
-            print(f"Corte anterior cerrado: {cr_opened}")
+            #Corte anterior cerrado
             return cr_opened, "Cerrado"
         elif cr_opened.status == "Iniciado":
-            print(f"El corte anterior NO estaba cerrado 'cr_opened': {cr_opened}")
+            #El corte anterior NO estaba cerrado
             return cr_opened, "Iniciado"
     except Exception as e:
             print("Error capturado:", e)
@@ -67,9 +66,9 @@ def cr_close(request):
     try:
         #Obtener datos del corte abierto
         last_cr = CRClosing.objects.last()
-        #Obtener pagos realizados durante ese corte
+        #Obtener pagos realizados en el periodo de ese corte
         payments_cr = Payment.objects.filter(created_at__gte=last_cr.start_at, user_id = request.user.id)
-        print(f"Corte abierto: {last_cr}, pagos dentro del corte: {payments_cr}")
+        #print(f"Corte abierto: {last_cr}, pagos dentro del corte: {payments_cr}")
         #Sumar saldos en caja
         if payments_cr and last_cr and last_cr.status == "Iniciado":
             for pay in payments_cr:

@@ -88,16 +88,16 @@
                                     <table class="table table-bordered">
                                         <thead>
                                             <tr>
-                                                <th class="per70 text-center">Producto</th>
-                                                <th class="per5 text-center">Cant.</th>
-                                                <th class="per25 text-center">Precio</th>
+                                                <th class="per70 text-center  mb-0">Producto</th>
+                                                <th class="per5 text-center mb-0">Cant.</th>
+                                                <th class="per25 text-center mb-0">Precio</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             {% for item in ordered_products %}
                                             <tr>
-                                                <td>{{item.product.name}}
-                                                    <p class="text-muted small">
+                                                <td class="mb-0">{{item.product.name}}
+                                                    <p class="text-muted small mb-0">
                                                         {% if item.variations.all %}
                                                             {% for var in item.variations.all %}
                                                                 <small>{{var.variation | capfirst}}: {{var.value | capfirst}} </small>
@@ -105,30 +105,30 @@
                                                         {% endif %}
                                                     </p>
                                                 </td>
-                                                <td class="text-center">{{item.quantity}}</td>
-                                                <td class="text-center">${{item.price|floatformat:"2g"}}</td>
+                                                <td class="text-center mb-0">{{item.quantity}}</td>
+                                                <td class="text-center mb-0">${{item.price|floatformat:"2g"}}</td>
                                             </tr>
                                             {% endfor %}
                                         </tbody>
                                         <tfoot>
                                             <tr>
-                                                <th colspan="2" class="text-right">total producto:</th>
+                                                <th colspan="2" class="text-right mb-0">total producto:</th>
                                                 <th class="text-center">${{order.sub_total|floatformat:"2g"}}</th>
                                             </tr>
                                             {% if order.tax > 0 %}
                                             <tr>
-                                                <th colspan="2" class="text-right">Impuestos:</th>
+                                                <th colspan="2" class="text-right mb-0">Impuestos:</th>
                                                 <th class="text-center">${{order.tax|floatformat:"2g"}}</th>
                                             </tr>
                                             {% endif %}
                                             {% if order.shipment %}
                                             <tr>
-                                                <th colspan="2" class="text-right">Envío:</th>
+                                                <th colspan="2" class="text-right mb-0">Envío:</th>
                                                 <th class="text-center">${{order.ship_cost|floatformat:"2g"}}</th>
                                             </tr>
                                             {% endif %}
                                             <tr>
-                                                <th colspan="2" class="text-right">Total:</th>
+                                                <th colspan="2" class="text-right mb-0">Total:</th>
                                                 <th class="text-center">${{order.total|floatformat:"2g"}}</th>
                                             </tr>
                                         </tfoot>

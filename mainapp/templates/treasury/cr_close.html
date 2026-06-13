@@ -33,13 +33,13 @@
                         <div class="col-lg-7">
                             <!-- col-lg-6 start here -->
                             <div class="invoice-from">
-                                <ul class="list-unstyled text-right">
+                                <ul class="list-unstyled text-right mb-0">
                                     <li><strong>Datos del corte</strong></li>
-                                    <li><b>Usuario:</b> {{user.full_name}}</li>
-                                    <li><b>Caja:</b> {{last_cr.cashregister_id}}</li>
-                                    <li><small>fecha:</small></li>
-                                    <li><small><b>Inicio:</b> {{last_cr.start_at}}</small></li>
-                                    <li><small><b>Finaliza:</b> {{last_cr.end_at}}</small></li>
+                                    <li><b class="text mb-0">Usuario:</b> {{user.full_name}}</li>
+                                    <li><b  class="text mb-0">Caja:</b> {{last_cr.cashregister_id}}</li>
+                                    <li><small class="text mb-0">fecha:</small></li>
+                                    <li><small class="text mb-0"><b>Inicio:</b> {{last_cr.start_at}}</small></li>
+                                    <li><small class="text mb-0"><b>Finaliza:</b> {{last_cr.end_at}}</small></li>
                                 </ul>
                             </div>
                         </div>
@@ -52,53 +52,53 @@
                                 <div class="well">
                                     
                                 </div>
-                                <div class="card-body">
-                                    <div class="form-row">
-                                        <div class="form-group col-md-6 text-left">
+                                <div class="card-body mb-0">
+                                    <div class="form-row mb-0">
+                                        <div class="form-group col-md-6 text-left mb-0">
                                             <b><label for="">Fondo inicial caja:</label></b>
                                         </div>
-                                        <div class="form-group col-md-6 text-right">
+                                        <div class="form-group col-md-6 text-right mb-0">
                                             <span> ${{last_cr.initial_balance|floatformat:"2g"}} </span>
                                         </div>
                                     </div>
                                     <div class="form-row">
-                                        <div class="form-group col-md-6 text-left">
+                                        <div class="form-group col-md-6 text-left mb-0">
                                             <b><label for="">Ingresos efectivo:</label></b>
                                         </div>
-                                        <div class="form-group col-md-6 text-right">
+                                        <div class="form-group col-md-6 text-right mb-0">
                                             <span> + ${{last_cr.cash_balance|floatformat:"2g"}} </span>
                                         </div>
                                     </div>
                                     <div class="form-row">
-                                        <div class="form-group col-md-6 text-left">
+                                        <div class="form-group col-md-6 text-left mb-0">
                                             <b><label for="">Ingresos transferencia:</label></b>
                                         </div>
-                                        <div class="form-group col-md-6 text-right">
+                                        <div class="form-group col-md-6 text-right mb-0">
                                             <span> + ${{last_cr.transfer_balance|floatformat:"2g"}} </span>
                                         </div>
                                     </div>
                                     <div class="form-row">
-                                        <div class="form-group col-md-6 text-left">
+                                        <div class="form-group col-md-6 text-left mb-0">
                                             <b><label for="">Ingresos Paypal/TC/TD:</label></b>
                                         </div>
-                                        <div class="form-group col-md-6 text-right">
+                                        <div class="form-group col-md-6 text-right mb-0">
                                             <span> + ${{last_cr.card_balance|floatformat:"2g"}} </span>
                                         </div>
                                     </div>
                                     <div class="form-row">
-                                        <div class="form-group col-md-6 text-left">
+                                        <div class="form-group col-md-6 text-left mb-0">
                                             <b><label for="">Salidas de caja:</label></b>
                                         </div>
-                                        <div class="form-group col-md-6 text-right">
+                                        <div class="form-group col-md-6 text-right mb-0">
                                             <span> - ${{last_cr.outcomes|floatformat:"2g"}} </span>
                                         </div>
                                     </div>
                                     <hr>
                                     <div class="form-row">
-                                        <div class="form-group col-md-6 text-left">
+                                        <div class="form-group col-md-6 text-left mb-0">
                                             <b><label for="">Saldo total en caja:</label></b>
                                         </div>
-                                        <div class="form-group col-md-6 text-right">
+                                        <div class="form-group col-md-6 text-right mb-0">
                                             <span> ${{last_cr.final_balance|floatformat:"2g"}} </span>
                                         </div>
                                     </div>
@@ -106,21 +106,21 @@
                                 {% if last_cr.incomes > 0 %}
                                 <div class="card-body">
                                     <div class="form-row">
-                                        <div class="form-group col-md-6 text-left">
+                                        <div class="form-group col-md-6 text-left mb-0">
                                             <b><label for="">Ingresos del día:</label></b> <br>
                                             <span> ${{last_cr.sales|floatformat:"2g"}} </span>
                                         </div>
-                                        <div class="form-group col-md-6 text-right">
+                                        <div class="form-group col-md-6 text-right mb-0">
                                             <b><label for="">Cobranza:</label></b> <br>
                                             <span> ${{last_cr.collect_balance|floatformat:"2g"}} </span>
                                         </div>
                                     </div>
                                     <div class="form-row">
-                                        <div class="form-group col-md-6 text-left">
+                                        <div class="form-group col-md-6 text-left mb-0">
                                             <b><label for="">Total ingresos:</label></b> <br>
                                             <span> ${{last_cr.incomes|floatformat:"2g"}} </span>
                                         </div>
-                                        <div class="form-group col-md-6 text-right">
+                                        <div class="form-group col-md-6 text-right mb-0">
                                             <b><label for="">Saldo efectivo:</label></b> <br>
                                             <span> ${{total_cash|floatformat:"2g"}} </span>
                                         </div>

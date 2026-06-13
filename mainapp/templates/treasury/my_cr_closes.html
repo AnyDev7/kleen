@@ -40,9 +40,10 @@
                                     </td>
                                     
                                     {% endcomment %}
-                                    <td class="text-right">
-                                        <var class="price text-muted text-right">Saldo total: ${{cr_close.final_balance|floatformat:"2g"}}</var> 
-                                        <var class="price text-muted text-right">Efectivo: ${{cr_close.total_cash|floatformat:"2g"}}</var> 
+                                    <td class="text-right mb-0">
+                                        <var class="price text-muted">Saldo total: ${{cr_close.final_balance|floatformat:"2g"}}</var> 
+                                        <var class="price text-muted">Efectivo: ${{cr_close.total_cash|floatformat:"2g"}}</var> 
+                                        {% if cr_close.collect_balance > 0 %}<p class="price text-muted mb-0">Cobranza: ${{cr_close.collect_balance|floatformat:"2g"}}</p> {% endif %}
                                     </td>
                                     <td>
                                         <span {% if cr_close.status == 'Iniciado' %} style="color: #17B169;"

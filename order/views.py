@@ -51,6 +51,7 @@ def payment_deferred(request):
             ordered_products = OrderProduct.objects.filter(order_id=order.id).exclude(quantity=0)
             order.status = "Pagada"
             payment.status = "Completado"
+            payment.collect = True
             order.save()
             payment.save()
             messages.success(request, f'¡Pago exitoso!')
