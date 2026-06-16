@@ -1,7 +1,7 @@
 from django.shortcuts import render, HttpResponse, redirect, get_object_or_404
 
 from kart.settings import STATES_MX
-from kart.settings import COMPANY
+from kart.settings import COMPANY, COMPANY_LOGO
 
 
 from .forms import New_CustomerForm, RegisterForm, UserForm, UserProfileForm, AddressForm
@@ -404,6 +404,7 @@ def order_detail(request, order_id):
     context = {
         'order': order,
         'ordered_products': ordered_products,
+        'COMPANY_LOGO': COMPANY_LOGO,
     }
     return render(request, 'order/order_detail.html', context)
 

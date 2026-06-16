@@ -80,6 +80,7 @@ def cr_close(request):
                         total_transfer += pay.amount_paid
                     elif pay.payment_method == "Paypal":
                         total_card += pay.amount_paid
+                    
                     if pay.collect:
                         total_collect += pay.amount_paid
                     else:
@@ -103,9 +104,11 @@ def cr_close(request):
             last_cr.save()
         else:
             if last_cr.status == "Cerrado" or not last_cr:
-                messages.info(request, f"No hay corte abierto para procesar.")
+                messages.info(request, f"No hay corte abierto para procesar. Saliendo...  Entre para crear nuevo corte.")
+                return redirect('logout')
             elif not payments_cr:
                 messages.info(request, f"No hay pagos ni ingresos para procesar.")
+                #Agregar si desea hacer el corte en ceros.
             
             return redirect('dashboard')
                     
@@ -119,6 +122,7 @@ def cr_close(request):
         'COMPANY_LOGO': COMPANY_LOGO
     }
     return render(request, 'treasury/cr_close.html', context) # 'treasury' subdirectorio en 'templates'
+
 
 def my_cr_closes(request):
 
