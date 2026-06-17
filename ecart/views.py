@@ -11,7 +11,9 @@ from account.forms import AddressForm
 #from account.views import addresses
 from django.contrib.auth.decorators import login_required
 
-# Create your views here.
+import json
+from django.views.decorators.http import require_POST
+
 
 def _cart_id(request): # Conseguir la sesion actual
     cart = request.session.session_key
@@ -246,7 +248,57 @@ def add_prod(request, product_id, flag=False, qty=0): # ADD_CART course
 
 
 
-def minus_add_to_prod(request, product_id, cart_item_id, flag=False):        
+
+#Vista agregada 16Jun 2026 - Claude code
+@require_POST
+def update_bunch_quantity(request):
+    data = json.loads(request.body)
+    product_id = data.get('product_id')
+    cart_item_id = data.get('cart_item_id')
+    quantity = data.get('quantity')
+    
+    #print(f'Data: {data}, product_id: {product_id}, cart_item_id: {cart_item_id}, quantity: {quantity}')
+    try:
+        quantity = int(quantity)
+        if quantity < 1:
+            raise ValueError
+    except (TypeError, ValueError):
+        return JsonResponse({'status': 'error', 'message': 'Cantidad inválida'}, status=400)
+
+    try:
+        current_user = request.user
+        cart_item = CartItem.objects.get(id=cart_item_id, product_id=product_id, user=current_user)
+    except CartItem.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Item no encontrado'}, status=404)
+    
+    cart_item.quantity = quantity
+    cart_item.save()
+    
+    #JOSEMARIA 16Jun 2026
+    total = qty = 0
+    try:
+        if request.user.is_authenticated:
+            cart_items = CartItem.objects.filter(user=request.user, is_active=True)
+        else:
+            cart = Cart.objects.get(cart_id=_cart_id(request))
+            cart_items = CartItem.objects.filter(cart=cart, is_active=True)
+            
+        for for_cart_item in cart_items:
+            total +=  for_cart_item.sub_total()   # checa si tiene descuento el price
+            qty += for_cart_item.quantity
+        
+    except CartItem.DoesNotExist or Cart.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Item no encontrado'}, status=404)
+
+
+    return JsonResponse({'status': 'ok', 'new_quantity': cart_item.quantity, 'new_subtotal': cart_item.sub_total(), 'total': total, 'qty': qty})
+
+
+
+
+
+def minus_add_to_prod(request, product_id, cart_item_id, flag=False):
+
     try:
         product = get_object_or_404(Product, id=product_id)
         current_user = request.user
@@ -262,8 +314,9 @@ def minus_add_to_prod(request, product_id, cart_item_id, flag=False):
             if cart_item.quantity >= 1:
                 cart_item.quantity -= 1
         cart_item.save()
-    except:
-        pass
+    except Exception as e:
+        messages.warning(request, f"Error capturado: {e}")
+    
     return redirect('ecart')
     
 
@@ -315,7 +368,8 @@ def ecart(request, total=0, quantity=0, cart_items=None):
         
         g_total = ship_total # debería ser si se cobran impuestos: g_total = ship_total + tax
     except Cart.DoesNotExist or CartItem.DoesNotExist:
-        pass
+        return redirect('store')
+        
     context = {
     'total': total,
     'tax': tax,
@@ -342,6 +396,7 @@ def select_customer(request, total="", flag=0):
     except Customer.DoesNotExist:
         customers = False
         messages.warning(request, 'No existe BD clientes.')
+        return redirect('ecart')
 
     context = { 
     'total': total,
