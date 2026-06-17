@@ -258,11 +258,13 @@ def update_bunch_quantity(request):
     quantity = data.get('quantity')
     
     #print(f'Data: {data}, product_id: {product_id}, cart_item_id: {cart_item_id}, quantity: {quantity}')
+    
     try:
         quantity = int(quantity)
-        if quantity < 1:
+        if quantity < 0:
             raise ValueError
     except (TypeError, ValueError):
+        return JsonResponse({'status': 'error', 'message': 'Cantidad inválida'}, status=400)
         return JsonResponse({'status': 'error', 'message': 'Cantidad inválida'}, status=400)
 
     try:
