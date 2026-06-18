@@ -252,21 +252,19 @@ def add_prod(request, product_id, flag=False, qty=0): # ADD_CART course
 
 
 #Vista agregada 16Jun 2026 - Claude code
+#Actualizada Claude 18Jun 2026
 @require_POST
 def update_bunch_quantity(request):
     data = json.loads(request.body)
     product_id = data.get('product_id')
     cart_item_id = data.get('cart_item_id')
     quantity = data.get('quantity')
-    
-    #print(f'Data: {data}, product_id: {product_id}, cart_item_id: {cart_item_id}, quantity: {quantity}')
-    
+
     try:
         quantity = int(quantity)
         if quantity < 0:
             raise ValueError
     except (TypeError, ValueError):
-        return JsonResponse({'status': 'error', 'message': 'Cantidad inválida'}, status=400)
         return JsonResponse({'status': 'error', 'message': 'Cantidad inválida'}, status=400)
 
     try:
@@ -274,11 +272,19 @@ def update_bunch_quantity(request):
         cart_item = CartItem.objects.get(id=cart_item_id, product_id=product_id, user=current_user)
     except CartItem.DoesNotExist:
         return JsonResponse({'status': 'error', 'message': 'Item no encontrado'}, status=404)
-    
+
+    # Validación de stock — JOSEMARIA 18Jun 2026
+    available_stock = cart_item.product.stock
+    if quantity > available_stock:
+        return JsonResponse({
+            'status': 'error',
+            'message': f'Existencias insuficientes. Disponibles: {available_stock}',
+            'available_stock': available_stock
+        }, status=400)
+
     cart_item.quantity = quantity
     cart_item.save()
-    
-    #JOSEMARIA 16Jun 2026
+
     total = qty = 0
     try:
         if request.user.is_authenticated:
@@ -286,16 +292,22 @@ def update_bunch_quantity(request):
         else:
             cart = Cart.objects.get(cart_id=_cart_id(request))
             cart_items = CartItem.objects.filter(cart=cart, is_active=True)
-            
+
         for for_cart_item in cart_items:
-            total +=  for_cart_item.sub_total()   # checa si tiene descuento el price
+            total += for_cart_item.sub_total()
             qty += for_cart_item.quantity
-        
-    except CartItem.DoesNotExist or Cart.DoesNotExist:
+
+    except (CartItem.DoesNotExist, Cart.DoesNotExist):
         return JsonResponse({'status': 'error', 'message': 'Item no encontrado'}, status=404)
 
-
-    return JsonResponse({'status': 'ok', 'new_quantity': cart_item.quantity, 'new_subtotal': cart_item.sub_total(), 'total': total, 'qty': qty})
+    return JsonResponse({
+        'status': 'ok',
+        'new_quantity': cart_item.quantity,
+        'new_subtotal': cart_item.sub_total(),
+        'total': total,
+        'qty': qty,
+        'available_stock': available_stock  # lo regresamos para que JS actualice el estado del botón
+    })
 
 
 

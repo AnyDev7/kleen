@@ -34,17 +34,17 @@
 {% else %}
 
 <div class="row">
-<aside class="col-lg-9">
+<aside class="col-lg-9"> <!-- Maximo ancho de aside total 12, en este caso 9 + 3 = 12 -->
 <div class="card">
 <table class="table table-borderless table-shopping-cart">
 <thead class="text-muted">
 <tr class="small text-uppercase">
   <th scope="col">Producto</th>
-  <th scope="col" width="110">Cantidad</th>
-  <th scope="col" width="60"></th>
-  <th scope="col" width="110">Precio</th>
+  <th scope="col" width="140">Cantidad</th>
+  <th scope="col" width="50"></th>
+  <th scope="col" width="100">Precio</th>
   <th scope="col" width="110">Importe</th>
-  <th scope="col" class="text-right" width="90"> </th> <!-- "200" -->
+  <th scope="col" class="text-right" width="60"> </th> <!-- "200" -->
 </tr>
 </thead>
 
@@ -75,7 +75,8 @@
 			<div class="input-group input-spinner">
 				<div class="input-group-prepend">
 					<!-- <a name="btn-minus" href=" {% url "minus_add_to_prod" cart_item.product.id cart_item.id 0 %} " class="btn btn-light" type="button" id="btn-minus"> <i class="fa fa-minus"></i> </a> -->
-					 <!-- Agregado con Claude code 17Jun 2026--> 
+					<!-- Agregado con Claude code 17Jun 2026--> 
+					<!--Actualizado Claude 18Jun 2026 -->
 					<a href="javascript:void(0)"
 						data-product-id="{{ cart_item.product.id }}"
 						data-cartitem-id="{{ cart_item.id }}"
@@ -86,19 +87,23 @@
 						<i class="fa fa-minus"></i>
 					</a>
 				</div>
-				<input name="qty_bunch" type="text" class="form-control"  value="{{cart_item.quantity}}">
+				<!-- Actualizado Claude 18Jun 2026 -->
+				 <input name="qty_bunch" type="text" class="form-control"
+    				value="{{ cart_item.quantity }}"
+				    data-stock="{{ cart_item.product.stock }}" style="width: 200px;">
 				<div class="input-group-append">
-					<!--<a name="btn-plus" href=" {% url 'minus_add_to_prod' cart_item.product.id cart_item.id 1 %} " class="btn btn-light" type="button" id="btn-plus"> <i class="fa fa-plus"></i> </a>-->
-					<!-- Agregado con Claude code 17Jun 2026--> 
+					<!-- Agregado Claude code 17Jun 2026--> 
+					<!--Actualizado Claude 18Jun 2026-->
 					<a href="javascript:void(0)"
 						data-product-id="{{ cart_item.product.id }}"
 						data-cartitem-id="{{ cart_item.id }}"
 						data-direction="1"
-						class="btn btn-light btn-step" type="button">
+						class="btn btn-light btn-step{% if cart_item.quantity >= cart_item.product.stock %} disabled{% endif %}"
+						{% if cart_item.quantity >= cart_item.product.stock %}aria-disabled="true" tabindex="-1"{% endif %}
+						type="button">
 						<i class="fa fa-plus"></i>
 					</a>
 				</div>
-				
 			</div> <!-- input-group.// -->
 		</div> <!-- col.// -->
 	</td>
@@ -137,34 +142,13 @@
 </tr>
 {% endfor %}
 
-<!-- ... el resto de la fila, y fuera del for: -->
-<!-- Agregado con Claude code 17Jun 2026--> 
-<div class="modal fade" id="confirmZeroModal" tabindex="-1" role="dialog" aria-labelledby="confirmZeroModalLabel" aria-hidden="true">
-  	<div class="modal-dialog" role="document">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title" id="confirmZeroModalLabel">Confirmar cantidad</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
-				<span aria-hidden="true">&times;</span>
-				</button>
-			</div>
-			<div class="modal-body">
-				¿Deseas dejar este producto en 0 piezas? No se eliminará del carrito.
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-				<button type="button" class="btn btn-primary" id="confirmZeroBtn">Confirmar</button>
-			</div>
-		</div>
-	</div>
-</div>
 
 </tbody>
 </table>
 </div> <!-- card.// -->
 </aside> <!-- col.// -->
 
-	<aside class="col-lg-3">
+	<aside class="col-lg-3"> <!-- Maximo ancho de aside total 12 -->
 
 		<div class="card">
 		<div class="card-body">
@@ -191,13 +175,14 @@
 
 </aside> <!-- col.// -->
 
-
 </div> <!-- row.// -->
 {% endif %}
 <!-- ============================ COMPONENT 1 END .// ================================= -->
 
 </div> <!-- container .//  -->
 </section>
+
+
 <!-- ========================= SECTION CONTENT END// ========================= -->
 
 
@@ -205,35 +190,53 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    let pendingZeroUpdate = null; // guarda los datos del row en espera de confirmación
+    let pendingZeroUpdate = null;
+
+    function setMinusState(minusBtn, newQuantity) {
+        if (!minusBtn) return;
+        if (newQuantity <= 0) {
+            minusBtn.classList.add('disabled');
+            minusBtn.setAttribute('aria-disabled', 'true');
+            minusBtn.setAttribute('tabindex', '-1');
+        } else {
+            minusBtn.classList.remove('disabled');
+            minusBtn.removeAttribute('aria-disabled');
+            minusBtn.removeAttribute('tabindex');
+        }
+    }
+
+    function setPlusState(plusBtn, newQuantity, availableStock) {
+        if (!plusBtn) return;
+        if (newQuantity >= availableStock) {
+            plusBtn.classList.add('disabled');
+            plusBtn.setAttribute('aria-disabled', 'true');
+            plusBtn.setAttribute('tabindex', '-1');
+        } else {
+            plusBtn.classList.remove('disabled');
+            plusBtn.removeAttribute('aria-disabled');
+            plusBtn.removeAttribute('tabindex');
+        }
+    }
 
     function updateCartUI(row, data) {
-        const qtyInput = row.querySelector('input[name="qty_bunch"]');
+        const qtyInput   = row.querySelector('input[name="qty_bunch"]');
         const subtotalEl = row.querySelector('.item-subtotal');
-        const ddElmtTot = document.getElementById("tot-pay");
+        const ddElmtTot  = document.getElementById("tot-pay");
         const ddElmtSrvc = document.getElementById("tot-service");
         const spanElmtCount = document.getElementById("cart-count");
-        const minusBtn = row.querySelector('.btn-step[data-direction="-1"]');
+        const minusBtn   = row.querySelector('.btn-step[data-direction="-1"]');
+        const plusBtn    = row.querySelector('.btn-step[data-direction="1"]');
 
         if (qtyInput) qtyInput.value = data.new_quantity;
         if (subtotalEl) {
             subtotalEl.textContent = '$' + Number(data.new_subtotal).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
-        if (ddElmtTot) ddElmtTot.textContent = '$' + Number(data.total).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        if (ddElmtSrvc) ddElmtSrvc.textContent = '$' + Number(data.total).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        if (spanElmtCount) spanElmtCount.textContent = data.qty;
+        if (ddElmtTot)      ddElmtTot.textContent      = '$' + Number(data.total).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (ddElmtSrvc)     ddElmtSrvc.textContent     = '$' + Number(data.total).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        if (spanElmtCount)  spanElmtCount.textContent  = data.qty;
 
-        if (minusBtn) {
-            if (data.new_quantity <= 0) {
-                minusBtn.classList.add('disabled');
-                minusBtn.setAttribute('aria-disabled', 'true');
-                minusBtn.setAttribute('tabindex', '-1');
-            } else {
-                minusBtn.classList.remove('disabled');
-                minusBtn.removeAttribute('aria-disabled');
-                minusBtn.removeAttribute('tabindex');
-            }
-        }
+        setMinusState(minusBtn, data.new_quantity);
+        setPlusState(plusBtn, data.new_quantity, data.available_stock);
     }
 
     function sendQuantityUpdate(productId, cartItemId, quantity, row) {
@@ -253,6 +256,10 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(data => {
             if (data.status === 'ok') {
                 updateCartUI(row, data);
+            } else if (data.available_stock !== undefined) {
+                // Error de stock — mostramos modal con las existencias disponibles
+                document.getElementById('stockModalBody').textContent = data.message;
+                $('#stockModal').modal('show');
             } else {
                 alert(data.message || 'No se pudo actualizar la cantidad');
             }
@@ -267,9 +274,16 @@ document.addEventListener('DOMContentLoaded', function () {
             const row = btn.closest('tr');
             const qtyInput = row.querySelector('input[name="qty_bunch"]');
             const quantity = parseInt(qtyInput.value, 10);
+            const stock = parseInt(qtyInput.dataset.stock, 10);
 
-            if (isNaN(quantity) || quantity < 1) {
+            if (isNaN(quantity) || quantity < 0) {
                 alert('Cantidad inválida');
+                return;
+            }
+            if (quantity > stock) {
+                document.getElementById('stockModalBody').textContent =
+                    `Existencias insuficientes. Disponibles: ${stock}`;
+                $('#stockModal').modal('show');
                 return;
             }
             sendQuantityUpdate(btn.dataset.productId, btn.dataset.cartitemId, quantity, row);
@@ -280,26 +294,32 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.btn-step').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
             e.preventDefault();
-            if (btn.classList.contains('disabled')) {
-                return;
-            }
+            if (btn.classList.contains('disabled')) return;
+
             const row = btn.closest('tr');
             const qtyInput = row.querySelector('input[name="qty_bunch"]');
             const current = parseInt(qtyInput.value, 10) || 0;
-            const direction = parseInt(btn.dataset.direction, 10);
+            const stock   = parseInt(qtyInput.dataset.stock, 10);
+            const direction  = parseInt(btn.dataset.direction, 10);
             const newQuantity = current + direction;
 
-            if (newQuantity < 0) {
-                return;
-            }
+            if (newQuantity < 0) return;
 
             if (newQuantity === 0) {
                 pendingZeroUpdate = {
-                    productId: btn.dataset.productId,
-                    cartItemId: btn.dataset.cartitemId,
+                    productId:   btn.dataset.productId,
+                    cartItemId:  btn.dataset.cartitemId,
                     row: row
                 };
                 $('#confirmZeroModal').modal('show');
+                return;
+            }
+
+            // Validación de stock en el front antes de ir al servidor
+            if (newQuantity > stock) {
+                document.getElementById('stockModalBody').textContent =
+                    `Existencias insuficientes. Disponibles: ${stock}`;
+                $('#stockModal').modal('show');
                 return;
             }
 
@@ -331,4 +351,47 @@ function getCookie(name) {
     return cookieValue;
 }
 </script>
+
+<!-- ... el resto de la fila, y fuera del for: -->
+<!-- MODAL Agregado con Claude code 17Jun 2026--> 
+<div class="modal fade" id="confirmZeroModal" tabindex="-1" role="dialog" aria-labelledby="confirmZeroModalLabel" aria-hidden="true">
+  	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="confirmZeroModalLabel">Confirmar cantidad</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+				<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				¿Deseas dejar este producto en 0 piezas? No se eliminará del carrito.
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+				<button type="button" class="btn btn-primary" id="confirmZeroBtn">Confirmar</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- MODAL Agregado Claude 18Jun 2026-->
+<div class="modal fade" id="stockModal" tabindex="-1" role="dialog" aria-labelledby="stockModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="stockModalLabel">Existencias insuficientes</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="stockModalBody">
+        No hay suficientes existencias disponibles.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Aceptar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 {% endblock content %}
