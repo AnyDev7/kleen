@@ -182,6 +182,47 @@
 </div> <!-- container .//  -->
 </section>
 
+<!-- ... el resto de la fila, y fuera del for: -->
+<!-- MODAL Agregado con Claude code 17Jun 2026--> 
+<div class="modal fade" id="confirmZeroModal" tabindex="-1" role="dialog" aria-labelledby="confirmZeroModalLabel" aria-hidden="true">
+  	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="confirmZeroModalLabel">Confirmar cantidad</h5>
+				<button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+				<span aria-hidden="true">&times;</span>
+				</button>
+			</div>
+			<div class="modal-body">
+				¿Deseas dejar este producto en 0 piezas? No se eliminará del carrito.
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+				<button type="button" class="btn btn-primary" id="confirmZeroBtn">Confirmar</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- MODAL Agregado Claude 18Jun 2026-->
+<div class="modal fade" id="stockModal" tabindex="-1" role="dialog" aria-labelledby="stockModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="stockModalLabel">Existencias insuficientes</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="stockModalBody">
+        No hay suficientes existencias disponibles.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-dismiss="modal">Aceptar</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- ========================= SECTION CONTENT END// ========================= -->
 
@@ -352,46 +393,6 @@ function getCookie(name) {
 }
 </script>
 
-<!-- ... el resto de la fila, y fuera del for: -->
-<!-- MODAL Agregado con Claude code 17Jun 2026--> 
-<div class="modal fade" id="confirmZeroModal" tabindex="-1" role="dialog" aria-labelledby="confirmZeroModalLabel" aria-hidden="true">
-  	<div class="modal-dialog" role="document">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title" id="confirmZeroModalLabel">Confirmar cantidad</h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
-				<span aria-hidden="true">&times;</span>
-				</button>
-			</div>
-			<div class="modal-body">
-				¿Deseas dejar este producto en 0 piezas? No se eliminará del carrito.
-			</div>
-			<div class="modal-footer">
-				<button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-				<button type="button" class="btn btn-primary" id="confirmZeroBtn">Confirmar</button>
-			</div>
-		</div>
-	</div>
-</div>
 
-<!-- MODAL Agregado Claude 18Jun 2026-->
-<div class="modal fade" id="stockModal" tabindex="-1" role="dialog" aria-labelledby="stockModalLabel" aria-hidden="true">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="stockModalLabel">Existencias insuficientes</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body" id="stockModalBody">
-        No hay suficientes existencias disponibles.
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-dismiss="modal">Aceptar</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 {% endblock content %}
