@@ -75,7 +75,7 @@ def add_prod(request, product_id, flag=False, qty=0): # ADD_CART course
         product = Product.objects.get(id=product_id) # Get the product
     except Product.DoesNotExist:
         return redirect('store')
-    print(f" Entra a add_prod: {product}")
+    #print(f" Entra a add_prod: {product}")
     # if the user is authenticated
     current_user = request.user
     if current_user.is_authenticated:
@@ -104,9 +104,10 @@ def add_prod(request, product_id, flag=False, qty=0): # ADD_CART course
                     
                     for var in variations: 
                         product_variations.append(var)
-                except:
-                    pass
-        print(f" Product_Variations, USER: {product_variations}")
+                except Exception as e:
+                    messages.warning(request, f"Error capturado: {e}")
+                    redirect ('store')   # / 'dashboard' / 'ecart'
+        #print(f" Product_Variations, USER: {product_variations}")
 
         cart_item_exists = CartItem.objects.filter(product = product, user=current_user).exists()
         print(f" Usuario autenticado, Item existe en ecart?: {cart_item_exists}")
@@ -181,8 +182,9 @@ def add_prod(request, product_id, flag=False, qty=0): # ADD_CART course
                     
                     for var in variations: 
                         product_variations.append(var)
-                except:
-                    pass
+                except Exception as e:
+                    messages.warning(request, f"Error capturado: {e}")
+                    redirect ('store')   # / 'dashboard' / 'ecart'
         print(f" Product_Variations, NO user: {product_variations}")
         try:
             cart = Cart.objects.get(cart_id=_cart_id(request)) # Conseguir el Cart actual con la cart_id de la sesion actual        
