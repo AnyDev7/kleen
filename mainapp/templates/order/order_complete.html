@@ -13,6 +13,8 @@
 	<br>
 	<div class="text-center">
 		<a href="{% url 'store' %}" class="btn btn-primary">Ver tienda</a>
+        <a href="?order_number={{order.number|urlencode}}&payment_id={{payment.payment_id|urlencode}}&ticket=1" 
+                                target="_blank" class="btn btn-secondary">Imprimir ticket</a>
 	</div>
 </div>
 
@@ -135,8 +137,10 @@
                                     </table>
                                 </div>
                             </div>
-                            <div class="invoice-footer mt25">
+                            <div class="invoice-footer mt25 text-center">
                                 <p class="text-center">Gracias por tu compra</p>
+                                <a href="?order_number={{order.number|urlencode}}&payment_id={{payment.payment_id|urlencode}}&ticket=1" 
+                                target="_blank" class="btn btn-secondary">Imprimir ticket</a>
                             </div>
                         </div>
                         <!-- col-lg-12 end here -->

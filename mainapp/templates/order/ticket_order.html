@@ -1,0 +1,86 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Ticket {{ order.number }}</title>
+<style>
+    @page { size: 80mm auto; margin: 0; }
+    * { box-sizing: border-box; }
+    body {
+        width: 80mm;
+        margin: 0 auto;
+        padding: 4mm;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 12px;
+        color: #000;
+    }
+    .center { text-align: center; }
+    .bold { font-weight: bold; }
+    .logo { max-width: 45mm; display: block; margin: 0 auto 2mm auto; }
+    hr { border: none; border-top: 1px dashed #000; margin: 2mm 0; }
+    .item-row { margin-bottom: 1.5mm; }
+    .item-detail { display: flex; justify-content: space-between; font-size: 11px; }
+    .totals-row { display: flex; justify-content: space-between; }
+    .no-print { display: block; margin-top: 4mm; }
+    @media print { .no-print { display: none; } }
+</style>
+</head>
+<body onload="window.print();">
+
+    {% if COMPANY_LOGO %}
+    <img src="{% static COMPANY_LOGO %}" alt="Logo" class="logo">
+    {% endif %}
+
+    <div class="center bold">TICKET DE COMPRA</div>
+    <div class="center">Orden: {{ order.number }}</div>
+    <div class="center">{{ order.created_at }}</div>
+    <hr>
+
+    <div>Atendido por: {{ user.full_name }}</div>
+    <!--{% if order.email %}<div>{{ order.email }}</div>{% endif %}-->
+    {% if order.phone %}<div>{{ order.phone }}</div>{% endif %}
+    <div>Pago ID: {{ payment.payment_id }}</div>
+    <div>Estatus: {{ payment.status }}</div>
+    <hr>
+
+    {% for item in ordered_products %}
+    <div class="item-row">
+        <div>{{ item.product.name }}</div>
+        {% if item.variations.all %}
+        <div style="font-size:10px; font-style: italic;">
+            {% for var in item.variations.all %}{{ var.variation|capfirst }}: {{ var.value|capfirst }}{% if not forloop.last %}, {% endif %}{% endfor %}
+        </div>
+        {% endif %}
+        <div class="item-detail">
+            <span>{{ item.quantity }} pza(s)</span>
+            <span>${{ item.price|floatformat:"2g" }}</span>
+        </div>
+    </div>
+    {% endfor %}
+
+    <hr>
+    <div class="totals-row"><span>Subtotal:</span><span>${{ order.sub_total|floatformat:"2g" }}</span></div>
+    {% if order.tax > 0 %}
+    <div class="totals-row"><span>Impuestos:</span><span>${{ order.tax|floatformat:"2g" }}</span></div>
+    {% endif %}
+    {% if order.shipment %}
+    <div class="totals-row"><span>Envío:</span><span>${{ order.ship_cost|floatformat:"2g" }}</span></div>
+    {% endif %}
+    <div class="totals-row bold"><span>TOTAL:</span><span>${{ order.total|floatformat:"2g" }}</span></div>
+    <hr>
+
+    {% if order.pickup %}
+    <div style="font-size:11px;">Retiro en tienda: {{ order.pickup_instructions }}</div>
+    {% elif order.shipment %}
+    <div style="font-size:11px;">Envío por: {{ order.logistic_supp }}</div>
+    {% endif %}
+
+    <div class="center" style="margin-top:3mm;">¡Gracias por tu compra!</div>
+
+    <div class="no-print center">
+        <button onclick="window.print()">Imprimir</button>
+    </div>
+
+</body>
+</html>

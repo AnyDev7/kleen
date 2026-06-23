@@ -42,7 +42,9 @@ class Payment(models.Model):
     currency = models.CharField("Moneda", max_length=4, default="MXN")
     status = models.CharField("Estatus", max_length=25, choices=STATUS)
     created_at = models.DateTimeField("Creado", auto_now_add=True)
-    canceled_at = models.DateTimeField("Creado", blank=True, null=True)
+    updated_at = models.DateTimeField("Actualizado", auto_now=True, null=True)
+    paid_at = models.DateTimeField("Pagado el", blank=True, null=True)
+    canceled_at = models.DateTimeField("Cancelado", blank=True, null=True)
     collect = models.BooleanField("Cobranza", default=False)
 
     class Meta:

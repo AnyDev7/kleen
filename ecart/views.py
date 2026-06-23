@@ -36,18 +36,17 @@ def create_menu(request, flag=False, qty=0):
     current_user = request.user
     try:
         # Clear Cart o comparar item by item
-        CartItem.objects.filter(user=request.user).delete()
+        CartItem.objects.filter(user=current_user).delete()
         products = Product.objects.all().filter(is_available=True)
         #Cargar con bucle todos los productos en el ecart, sesión actual.
+        try:
+            cart = Cart.objects.get(cart_id=_cart_id(request)) # Conseguir el Cart actual con la cart_id de la sesion actual        
+        except Cart.DoesNotExist:
+            cart = Cart.objects.create(
+                cart_id = _cart_id(request),
+            )
+            cart.save()
         for product in products:            
-            try:
-                cart = Cart.objects.get(cart_id=_cart_id(request)) # Conseguir el Cart actual con la cart_id de la sesion actual        
-            except Cart.DoesNotExist:
-                cart = Cart.objects.create(
-                    cart_id = _cart_id(request),
-                )
-                cart.save()
-
             #Modidicado 15Abr2026: product = product (no se puede comparar instancia con instancia) > product_id = product.id
             # product__id hace referencia a la relación del modelo CartItem con el modelo Products
             cart_item_exists = CartItem.objects.filter(product__id = product.id, cart=cart).exists()
@@ -56,7 +55,7 @@ def create_menu(request, flag=False, qty=0):
                 
                 # 28ABR 2026: REVISAR SI obtiene el producto del carrito.
                 #Obtener el item del carrito
-                cart_item = CartItem.objects.get(product=product)
+                cart_item = CartItem.objects.get(product__id = product.id, cart=cart)
                 cart_item.quantity = 0
                 cart_item.user=current_user
                 # Increase cart item quantity con boton +, o reduce con botón -
@@ -64,8 +63,9 @@ def create_menu(request, flag=False, qty=0):
             else:
                 cart_item = CartItem.objects.create(user=current_user, product=product, cart=cart, quantity=0)
                 cart_item.save()
-    except:
-        None
+    except Exception as e:
+        messages.warning(request, f"Error capturado: {e}")
+        return redirect ('dashboard')
     
     return redirect('ecart')
 
@@ -106,7 +106,7 @@ def add_prod(request, product_id, flag=False, qty=0): # ADD_CART course
                         product_variations.append(var)
                 except Exception as e:
                     messages.warning(request, f"Error capturado: {e}")
-                    redirect ('store')   # / 'dashboard' / 'ecart'
+                    return redirect ('store')   # / 'dashboard' / 'ecart'
         #print(f" Product_Variations, USER: {product_variations}")
 
         cart_item_exists = CartItem.objects.filter(product = product, user=current_user).exists()
@@ -184,7 +184,7 @@ def add_prod(request, product_id, flag=False, qty=0): # ADD_CART course
                         product_variations.append(var)
                 except Exception as e:
                     messages.warning(request, f"Error capturado: {e}")
-                    redirect ('store')   # / 'dashboard' / 'ecart'
+                    return redirect ('store')   # / 'dashboard' / 'ecart'
         print(f" Product_Variations, NO user: {product_variations}")
         try:
             cart = Cart.objects.get(cart_id=_cart_id(request)) # Conseguir el Cart actual con la cart_id de la sesion actual        
@@ -285,7 +285,7 @@ def update_bunch_quantity(request):
     cart_item.quantity = quantity
     cart_item.save()
 
-    total = qty = 0
+    total = tot_qty = 0
     try:
         if request.user.is_authenticated:
             cart_items = CartItem.objects.filter(user=request.user, is_active=True)
@@ -295,7 +295,7 @@ def update_bunch_quantity(request):
 
         for for_cart_item in cart_items:
             total += for_cart_item.sub_total()
-            qty += for_cart_item.quantity
+            tot_qty += for_cart_item.quantity
 
     except (CartItem.DoesNotExist, Cart.DoesNotExist):
         return JsonResponse({'status': 'error', 'message': 'Item no encontrado'}, status=404)
@@ -305,7 +305,7 @@ def update_bunch_quantity(request):
         'new_quantity': cart_item.quantity,
         'new_subtotal': cart_item.sub_total(),
         'total': total,
-        'qty': qty,
+        'tot_qty': tot_qty,
         'available_stock': available_stock  # lo regresamos para que JS actualice el estado del botón
     })
 
@@ -406,6 +406,11 @@ def select_customer(request, total="", flag=0):
     # flag=0 compra directa
     # flag=1 compra desde carrito
     # Crear proceso alterno de: direct_purchase
+    # total debe ser string, porque las rutas no aceptan float
+    if float(total) <= 0:
+        messages.info(request, 'Carrito vacío.')
+        return redirect('ecart')
+    
     customers = None
     try:
         customers = Customer.objects.all().order_by('name')
@@ -427,7 +432,10 @@ def select_address(request, total="", flag=0):
     # flag=0 compra directa
     # flag=1 compra desde carrito
     # Crear proceso alterno de: direct_purchase
-    
+    # total debe ser string, porque las rutas no aceptan float
+    if float(total) <= 0:
+        messages.info(request, 'Carrito vacío.')
+        return redirect('ecart')
     try:
         address = Address.objects.filter(user__id=request.user.id,  default=True).first()
     except Address.DoesNotExist:

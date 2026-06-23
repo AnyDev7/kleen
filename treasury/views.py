@@ -64,56 +64,59 @@ def cr_close(request):
     total_balance= total_cash= total_transfer= total_card= total_collect= total_sales = 0
 
     try:
-        #Obtener datos del corte abierto
-        last_cr = CRClosing.objects.last()
-        #Obtener pagos realizados en el periodo de ese corte
-        payments_cr = Payment.objects.filter(created_at__gte=last_cr.start_at, user_id = request.user.id)
-        #print(f"Corte abierto: {last_cr}, pagos dentro del corte: {payments_cr}")
-        #Sumar saldos en caja
-        if payments_cr and last_cr and last_cr.status == "Iniciado":
-            for pay in payments_cr:
-                if pay.status == "Completado":
-                    total_balance += pay.amount_paid
-                    if pay.payment_method == "Efectivo":
-                        total_cash += pay.amount_paid
-                    elif pay.payment_method == "Transferencia":
-                        total_transfer += pay.amount_paid
-                    elif pay.payment_method == "Paypal":
-                        total_card += pay.amount_paid
-                    
-                    if pay.collect:
-                        total_collect += pay.amount_paid
-                    else:
-                        total_sales += pay.amount_paid
+        if request.GET.get('ticket') != '1':
+            #Obtener datos del corte abierto
+            last_cr = CRClosing.objects.last()
+            #Obtener pagos realizados en el periodo de ese corte
+            payments_cr = Payment.objects.filter(created_at__gte=last_cr.start_at, user_id = request.user.id)
+            #print(f"Corte abierto: {last_cr}, pagos dentro del corte: {payments_cr}")
+            #Sumar saldos en caja
+            if payments_cr and last_cr and last_cr.status == "Iniciado":
+                for pay in payments_cr:
+                    if pay.status == "Completado":
+                        total_balance += pay.amount_paid
+                        if pay.payment_method == "Efectivo":
+                            total_cash += pay.amount_paid
+                        elif pay.payment_method == "Transferencia":
+                            total_transfer += pay.amount_paid
+                        elif pay.payment_method == "Paypal":
+                            total_card += pay.amount_paid
+                        
+                        if pay.collect:
+                            total_collect += pay.amount_paid
+                        else:
+                            total_sales += pay.amount_paid
 
-            #Actualizar el corte y cerrarlo
-            last_cr.incomes = total_balance
-            last_cr.outcomes = 0
-            last_cr.sales = total_sales
-            last_cr.cash_balance = total_cash
-            last_cr.transfer_balance = total_transfer
-            last_cr.card_balance = total_card
-            last_cr.collect_balance = total_collect
-            last_cr.end_at = datetime.now()
-            #Si usas datetime.now() puro, puede ser naive queda en horario UTC (del servidor)
-            # y causar confusión → mejor usar timezone.now() en Django de tu TIME_ZONE.
-            last_cr.save()
-            last_cr.final_balance = last_cr.initial_balance + last_cr.incomes - last_cr.outcomes
-            last_cr.total_cash = last_cr.initial_balance + last_cr.cash_balance
-            last_cr.status = "Cerrado"
-            last_cr.save()
+                #Actualizar el corte y cerrarlo
+                last_cr.incomes = total_balance
+                last_cr.outcomes = 0
+                last_cr.sales = total_sales
+                last_cr.cash_balance = total_cash
+                last_cr.transfer_balance = total_transfer
+                last_cr.card_balance = total_card
+                last_cr.collect_balance = total_collect
+                last_cr.end_at = datetime.now()
+                #Si usas datetime.now() puro, puede ser naive queda en horario UTC (del servidor)
+                # y causar confusión → mejor usar timezone.now() en Django de tu TIME_ZONE.
+                last_cr.save()
+                last_cr.final_balance = last_cr.initial_balance + last_cr.incomes - last_cr.outcomes
+                last_cr.total_cash = last_cr.initial_balance + last_cr.cash_balance
+                last_cr.status = "Cerrado"
+                last_cr.save()
+            else:
+                if last_cr.status == "Cerrado" or not last_cr:
+                    messages.info(request, f"No hay corte abierto para procesar. Saliendo...  Entre para crear nuevo corte.")
+                    return redirect('logout')
+                elif not payments_cr:
+                    messages.info(request, f"No hay pagos ni ingresos para procesar.")
+                    #Agregar si desea hacer el corte en ceros.
+                
+                return redirect('dashboard')
         else:
-            if last_cr.status == "Cerrado" or not last_cr:
-                messages.info(request, f"No hay corte abierto para procesar. Saliendo...  Entre para crear nuevo corte.")
-                return redirect('logout')
-            elif not payments_cr:
-                messages.info(request, f"No hay pagos ni ingresos para procesar.")
-                #Agregar si desea hacer el corte en ceros.
-            
-            return redirect('dashboard')
+            last_cr = CRClosing.objects.last()
                     
     except Exception as e:
-        print("Error capturado:", e)
+        #print("Error capturado:", e)
         messages.warning(request, f"Error capturado: {e}")
         return redirect('dashboard')
     context = {
@@ -121,7 +124,9 @@ def cr_close(request):
         'total_cash': last_cr.initial_balance + last_cr.cash_balance,
         'COMPANY_LOGO': COMPANY_LOGO
     }
-    return render(request, 'treasury/cr_close.html', context) # 'treasury' subdirectorio en 'templates'
+    if request.GET.get('ticket') == '1':
+        return render(request, 'treasury/ticket_cr_close.html', context)
+    return render(request, 'treasury/cr_close.html', context) # 'treasury' subdirectorio en 'templates' de mainapp
 
 
 def my_cr_closes(request):
@@ -139,3 +144,14 @@ def my_cr_closes(request):
         messages.warning(request, f"Error capturado: {e}")
         return redirect('dashboard')
     return render(request, "treasury/my_cr_closes.html", context)
+
+
+@login_required(login_url='login')
+def crclose_detail(request, cr_close_id):
+    cr_close = get_object_or_404(CRClosing, id=cr_close_id)
+    #ordered_products = OrderProduct.objects.filter(order__id=order_id) # order__id: doble 'underscore' para accesar al campo de foreignkey
+    context = {
+        'cr_close': cr_close,
+        'COMPANY_LOGO': COMPANY_LOGO,
+    }
+    return render(request, 'treasury/cr_close_detail.html', context)

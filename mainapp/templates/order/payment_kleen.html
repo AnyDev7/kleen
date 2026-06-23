@@ -8,7 +8,7 @@
 
 <!-- ============================ COMPONENT 1 ================================= -->
 <h4 class="text-center mb-10">Paga tu orden</h4>
-<form action="{% url 'payment_cash' %}" method="POST">
+<form action="{% url 'payment_cash' collect %}" method="POST">
 {% csrf_token %}
 <div class="row">
 <aside class="col-lg-8">
@@ -157,23 +157,7 @@
 			<hr>
 			<p class="text-center mb-3">
 				<img src="{% static "./images/misc/payments.png" %}" height="26">
-			</p>
-			{% comment %}
-			2 Formas enviar datos por GET
-			<form method="get" action="{% url 'procesar' %}">
-				<label for="nombre">Nombre:</label>
-				<input type="text" id="nombre" name="nombre" value="Juan">
-				<button type="submit">Enviar</button>
-			</form>
-			<!--<a href="{% url 'procesar' %}?nombre=Maria">Enviar nombre por GET</a>-->
-			<!--/procesar/?nombre=Maria-->
-			<!--/procesar/?nombre=Juan&edad=25-->
-			<a href="{% url 'mi_vista' %}?csrfmiddlewaretoken={{ csrf_token }}">Ir a vista</a>
-			
-			<input type="hidden" name="signed_url" value="{{ signed_url }}"> <!-- CHECAR 15ABR2026-->			
-			Tenía esto: 17Abr2026
-			<a href="{% url 'payment_cash' %}?order_number={{order.number}}&payment_id=Efectivo&csrfmiddlewaretoken={{ csrf_token }}" class="btn btn-warning btn-block"> Pagar Efectivo ${{ship_total|floatformat:"2g" }}</a>
-			{% endcomment %}
+			</p>			
 			<input type="hidden" name="order_number" value="{{ order.number }}">
 			<input type="hidden" name="payment_id" value="cualquier_valor">
 			<button type="submit" name="submit_cash" class="btn btn-primary btn-block"> Pagar ${{ship_total|floatformat:"2g" }}</button>
@@ -184,8 +168,10 @@
 				<!-- Paypal button will load here-->
 			</div>
 			{% endcomment %}
+			{% if not collect %}
 			<hr>
 			<button type="submit" name="submit_deferred" class="btn btn-warning btn-block"> Pagar después ${{ship_total|floatformat:"2g" }}</button>
+			{% endif %}
 			</div>
 			
 		</div> <!-- card-body.// -->

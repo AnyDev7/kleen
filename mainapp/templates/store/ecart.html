@@ -167,7 +167,7 @@
 			{% if total > 0 %}
 				<a href="{% url 'select_customer' total|stringformat:"f" 1 %}" class="btn btn-primary btn-block"> Procesar Orden </a>
 			{% else %}
-				<a href="" class="btn btn-light btn-block"> Agregue servicios </a>
+				<a href="{% url "store" %}" class="btn btn-outline-primary btn-block"> Buscar + servicios </a>
 			{% endif %}
 			<!--<a href="{% url "store" %}" class="btn btn-outline-primary btn-block">Buscar más</a>-->
 		</div> <!-- card-body.// -->
@@ -218,7 +218,7 @@
         No hay suficientes existencias disponibles.
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-dismiss="modal">Aceptar</button>
+        <button aria-disabled="false" type="button" class="btn btn-primary" data-dismiss="modal">Aceptar</button>
       </div>
     </div>
   </div>
@@ -267,6 +267,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const spanElmtCount = document.getElementById("cart-count");
         const minusBtn   = row.querySelector('.btn-step[data-direction="-1"]');
         const plusBtn    = row.querySelector('.btn-step[data-direction="1"]');
+        //Modificar el total y g_total pasadas en el contexto de ecart()
 
         if (qtyInput) qtyInput.value = data.new_quantity;
         if (subtotalEl) {
@@ -274,7 +275,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (ddElmtTot)      ddElmtTot.textContent      = '$' + Number(data.total).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         if (ddElmtSrvc)     ddElmtSrvc.textContent     = '$' + Number(data.total).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        if (spanElmtCount)  spanElmtCount.textContent  = data.qty;
+        if (spanElmtCount)  spanElmtCount.textContent  = data.tot_qty;
 
         setMinusState(minusBtn, data.new_quantity);
         setPlusState(plusBtn, data.new_quantity, data.available_stock);

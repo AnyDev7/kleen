@@ -48,8 +48,8 @@
                                     <td>
                                         <span {% if cr_close.status == 'Iniciado' %} style="color: #17B169;"
                                         {% elif cr_close.status == 'Cerrado'  %} style="color: #007FFF;" 
-                                        {% endif %} ><b>{{cr_close.status}}</b> <small> | Corte del  {{cr_close.start_at}} {% if cr_close.status == 'Cerrado'  %} al {{cr_close.end_at}}{% endif %}</small></span> <br>
-                                        <small><span class="price text-muted small">
+                                        {% endif %} > <b>{{cr_close.status}}</b> <a href=" {% url "crclose_detail" cr_close.id %} "><small> | Corte del  {{cr_close.start_at}} {% if cr_close.status == 'Cerrado'  %} al {{cr_close.end_at}}{% endif %}</small></span> <br>
+                                        <small></a> <span class="price text-muted small">
                                         <var class="price text-muted">Inicial </var>
                                         ${{cr_close.initial_balance|floatformat:"2g"}} 
                                         <var class="price text-muted">+ Ingresos efectivo </var>
@@ -72,20 +72,8 @@
                                         ${{cr_close.total_cash|floatformat:"2g"}} |
                                         </span></small>
                                         
-                                        
                                     </td>  <!--https://cssgradient.io/shades-of-green/-->
-                                    {% comment "No se necesitan botones" %}
-                                    <td width="250"> 
-                                        <a href="#" class="btn btn-primary">Rastrear envío</a>
-                                        <a href=" {% url "order_detail" order.id %} " class="btn btn-info "> Detalles </a> 
-                                        
-                                        {% if not order.status == 'Pagada' %}
-                                        <div class="form-group">
-                                            <button type="submit" name="pay" value="{{order.number}}" class="btn btn-warning btn-block mt-1"> Pagar ${{order.total|floatformat:"2g" }}</button>
-                                        </div>
-                                        {% endif %}
-                                    </td>
-                                    {% endcomment %}
+                                    
                                 </tr>
                                 {% endfor %}
                                 {% endif %}

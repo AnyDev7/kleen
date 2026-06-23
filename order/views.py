@@ -1,6 +1,9 @@
 import json
 from django.shortcuts import render, HttpResponse, redirect, get_object_or_404
 from django.contrib import messages
+from django.urls import reverse
+from urllib.parse import urlencode
+from django.utils import timezone
 
 from ecart.models import CartItem
 from .forms import OrderForm
@@ -19,6 +22,7 @@ from django.views.decorators.csrf import csrf_protect #CHECAR 15ABR2026
 
 #Función para pagar ordenes cobradas desde "Mis Ordenes"
 # Sustituye payment_deferred y manda a pagar a payment_kleen.html
+# Por programar 20Jun2026
 def collect_pay(request):
     order = get_object_or_404(Order,user=current_user, number=order_number, is_ordered=False)
     context = {
@@ -33,34 +37,44 @@ def collect_pay(request):
     }
     return render(request, 'order/payment_kleen.html', context)
 
-
+#Pago directo desde consulta my_orders en account.views > my _orders.html
+#mejor opción enviar datos a payment_kleen.html > payment_cash() > order_complete() > order_complete.html
 def payment_deferred(request):
     if "pay" in request.POST:
-
         order_number = request.POST.get("pay")
-        print(f"Order Number: 'order_number', Existe: {order_number}") # OK funciona
+        #print(f"Order Number: 'order_number', Existe: {order_number}") # OK funciona
         try:
             order = Order.objects.get(number=order_number, is_ordered=True)
             print(f"Pago ID: 'order.payment_id', Existe: {order.payment_id}") # OK funciona
+            #order.payment_id - payment_id es el indice de campo del foreign key (trae el id)
             print(f"Pago ID: 'order.payment.id', Existe: {order.payment.id}") # OK funciona
-            payment = Payment.objects.get(id=order.payment_id)
-            #Borrar
-            payment_exist = Payment.objects.filter(id=order.payment_id).exists()
-            print(f"Pago: {payment}, Existe:{payment_exist}")
+            #order.payment.id - payment es el campo del foreign key, .id= trae el id
+            
+            #Borrar 
+            # No obtener el pago payment = Payment.objects.get(id=order.payment_id)
+            # payment_exist = Payment.objects.filter(id=order.payment_id).exists()
+            #print(f"Pago: {payment}, Existe:{payment_exist}")
             #final Borrar
+
             ordered_products = OrderProduct.objects.filter(order_id=order.id).exclude(quantity=0)
-            order.status = "Pagada"
-            payment.status = "Completado"
-            payment.collect = True
-            order.save()
-            payment.save()
-            messages.success(request, f'¡Pago exitoso!')
+            #order.status = "Recibida"
+            #payment.status = "Iniciado"
+            #payment.collect = True
+            #order.save()
+            #payment.save()
+            #messages.success(request, f'¡Pago exitoso!')
             context = {
-                    'order': order,
-                    'ordered_products': ordered_products,
-                    'payment': payment,
-                }
-            return render(request, "order/order_complete.html", context)
+                'order': order,
+                'cart_items': ordered_products,
+                'total': order.sub_total,
+                'ship_cost': order.ship_cost,             
+                'tax': order.tax,
+                'g_total': order.total,
+                'ship_total': order.ship_cost+order.sub_total,
+                'delivery': order.logistic_supp,
+                'collect': 1,
+            }
+            return render(request, 'order/payment_kleen.html', context)
         
         except (Payment.DoesNotExist, Order.DoesNotExist):
             return redirect('my_orders')
@@ -69,17 +83,14 @@ def payment_deferred(request):
 
 
 @csrf_protect #CHECAR 15Abr2026
-def payment_cash(request):
+def payment_cash(request, collect):
     if request.method == 'POST':
-        # body = json.loads(request.body) #pago con paypal o card
-
         #Obtener datos del request POST
         type_payment = request.POST.get('type_payment') # viene de option radio  name=type_payment cash or card
         payment_id = request.POST.get('payment_id')
         order_number = request.POST.get('order_number')
-        payment_method = 'Efectivo'
         payment_id = type_payment + order_number
-        
+        payment_method = 'Efectivo'
         if type_payment == 'transfer':
             payment_method = 'Transferencia'
         elif type_payment == 'paypal':
@@ -87,25 +98,36 @@ def payment_cash(request):
 
         order_exist = Order.objects.filter(user=request.user, number=order_number).exists()
         print(f"Orden: {order_number}, Existe:{order_exist}")
-        order = get_object_or_404(Order, user=request.user, is_ordered=False, number=order_number)
-        
         try:
+            if collect == 1:
+                # obtener orden procesada y no pagada, y el pago pendiente.
+                order = Order.objects.get(user=request.user, number=order_number)
+                payment = Payment.objects.get(id=order.payment_id)
+                payment.collect = True
+                payment.status = "Completado"
+                payment.payment_method = payment_method
+                payment.paid_at = timezone.now()
+                payment.save()
+            else:
+                # obtener Orden no procesada y no pagada, crear el pago.
+                order = get_object_or_404(Order, user=request.user, is_ordered=False, number=order_number)
                 # store transaction data
-            payment = Payment(
-                user = request.user,
-                payment_id = payment_id, #request.POST.get('payment_id'), #En el modelo Payment, payment_id no es un indice
-                payment_method = payment_method,
-                amount_paid = order.total,  #float(body['payment_amount']), #Order model: order.total
-                status = "Completado",
-            )
-            payment.save()
-
-            order.payment = payment  # Foreign_key se asigna el objeto completo al campo ForeignKey
-            order.is_ordered = True
-            if "submit_cash" in request.POST: #Pago con efectivo al momento
+                payment = Payment(
+                    user = request.user,
+                    payment_id = payment_id, #request.POST.get('payment_id'), #En el modelo Payment, payment_id no es un indice
+                    payment_method = payment_method,
+                    amount_paid = order.total,  #float(body['payment_amount']), #Order model: order.total
+                    status = "Completado",
+                )
+                payment.save()
+                order.payment = payment  # Foreign_key se asigna el objeto completo al campo ForeignKey
+                order.is_ordered = True
+            if "submit_cash" in request.POST: #Pago con efectivo
                 order.status = "Pagada"
-                order.paid_at = payment.created_at
-                print(f"Submit Cash: 'submit_cash', Existe:{request.POST}")
+                order.paid_at = timezone.now() # NO usar datetime.now() - timezone.now() en lugar de datetime.now() porque respeta la configuración de TIME_ZONE y USE_TZ
+                payment.paid_at = timezone.now()
+                payment.save()
+                #print(f"Submit Cash: 'submit_cash', Existe:{request.POST}")
             elif "submit_deferred" in request.POST: #Pago en efectivo diferido
                 order.status = "No Pagada"
                 order.paid_at = None
@@ -115,59 +137,68 @@ def payment_cash(request):
                 print(f"Submit Deferred: 'submit_deferred', Existe:{request.POST}")
                 print(f"Payment Status: 'payment.status', Existe:{payment.status}")
                 print(f"Payment Status: 'order.paid_at', Existe:{order.paid_at}")
-            else:
-                order.status = "Pagada"
             
             order.save()
+            if collect == 0:
+                # Move cart items to OrderProduct table 
+                cart_items = CartItem.objects.filter(user=request.user).exclude(quantity=0)
+                for item in cart_items:
+                    orderproduct = OrderProduct()
+                    orderproduct.order_id = order.id #ForeignKey 
+                    orderproduct.payment = payment #ForeignKey
+                    orderproduct.user_id = request.user.id #ForeignKey 
+                    orderproduct.product_id = item.product_id #ForeignKey 
+                    orderproduct.quantity = item.quantity
+                    orderproduct.price = item.price
+                    orderproduct.ordered = True
+                    orderproduct.save()
 
-            # Move cart items to OrderProduct table 
-            cart_items = CartItem.objects.filter(user=request.user).exclude(quantity=0)
-            for item in cart_items:
-                orderproduct = OrderProduct()
-                orderproduct.order_id = order.id #ForeignKey 
-                orderproduct.payment = payment #ForeignKey
-                orderproduct.user_id = request.user.id #ForeignKey 
-                orderproduct.product_id = item.product_id #ForeignKey 
-                orderproduct.quantity = item.quantity
-                orderproduct.price = item.price
-                orderproduct.ordered = True
-                orderproduct.save()
+                    cart_item = CartItem.objects.get(id=item.id)
+                    product_variations = cart_item.variations.all()
+                    orderproduct = OrderProduct.objects.get(id=orderproduct.id)
+                    orderproduct.variations.set(product_variations)
+                    orderproduct.save()
 
-                cart_item = CartItem.objects.get(id=item.id)
-                product_variations = cart_item.variations.all()
-                orderproduct = OrderProduct.objects.get(id=orderproduct.id)
-                orderproduct.variations.set(product_variations)
-                orderproduct.save()
+                    # decrease o reduce quantity of sale product & variation
+                    product = Product.objects.get(id=item.product_id)
+                    product.stock -= item.quantity
+                    product.save()  # Hasta aqui OK
 
-                # decrease o reduce quantity of sale product & variation
-                product = Product.objects.get(id=item.product_id)
-                product.stock -= item.quantity
-                product.save()  # Hasta aqui OK
+                    # Decrease quantity of variation
+                    for stockvar in product_variations:
+                        stockvar.stock -= item.quantity
+                        stockvar.save()
+                
+                # Clear Cart
+                CartItem.objects.filter(user=request.user).delete()
 
-                # Decrease quantity of variation
-                for stockvar in product_variations:
-                    stockvar.stock -= item.quantity
-                    stockvar.save()
-            
-            # Clear Cart
-            CartItem.objects.filter(user=request.user).delete()
+                # Send Order recieved email to customer
+                mail_subject = '¡Se generó una Orden nueva!'
+                mail_message = render_to_string('order/order_recieved_email.html', {
+                    'user': request.user,
+                    'order': order,
+                    'cart_items': cart_items,
+                    'company': COMPANY,
+                })
+                to_email = request.user.email
+                send_email = EmailMessage(mail_subject, mail_message, to=[to_email])
+                send_email.send()
 
-            # Send Order recieved email to customer
-            mail_subject = '¡Se generó una Orden nueva!'
-            mail_message = render_to_string('order/order_recieved_email.html', {
-                'user': request.user,
-                'order': order,
-                'cart_items': cart_items,
-                'company': COMPANY,
+            #Agregado 20Jun 2026 Claude - JMBS
+            base_url = reverse('order_complete')
+            params = urlencode({
+                'order_number': order.number,
+                'payment_id': payment.payment_id,
             })
-            to_email = request.user.email
-            send_email = EmailMessage(mail_subject, mail_message, to=[to_email])
-            send_email.send()
+            #print(f'Base_URL + params: {base_url}?{params}')
+            #messages.info(request, f'Base_URL + params: {base_url}?{params}')
+            return redirect(f'{base_url}?{params}')
+            #Fin agregado 20Jun 2026
 
         except Exception as e:
             print("Error capturado:", e)
             messages.error(request, f'No se registró su orden. {e}')
-            redirect('ecart')
+            return redirect('ecart')
 
         
         try:
@@ -180,16 +211,26 @@ def payment_cash(request):
                 'payment': payment,
                 'COMPANY_LOGO': COMPANY_LOGO
             }
+            #Agregado el 20Jun 2026 Claude code
+            #if request.GET.get('ticket') == '1':
+            #    return render(request, 'order/ticket_order.html', context)
+            #Return modificado 20Jun 2026 - JMBS, se cambia por ridirect
+            #Como en el script de payment: redirect_url = "{% url 'order_complete' %}"
+            #window.location.href = redirect_url + '?order_number='+ data.order_number + '&payment_id=' + data.payment_id; //Sí funciona + '&status='+ data.status + '&date=' + data.date;
             return render(request, "order/order_complete.html", context)
+            # Sí funciona si ponesmos argumentos en order_complete() return redirect('order_complete', order_number=order_number, payment_id=payment_id)
+            # url absoluta o relativa: order-complete
+            #return redirect(f'order-complete/?order_number={order_number}&payment_id={payment_id}')
+            
 
         except Exception as e :
             print("Error capturado:", e)
             messages.error(request, f'No existe orden o pago. {e}')
-            redirect('ecart')
+            return redirect('ecart')
         #redirect('order_complete') comentado 20Abr 2026
         
     else:
-        redirect('ecart')
+        return redirect('ecart')
 
 
 def payment(request):
@@ -286,9 +327,12 @@ def place_order(request, delivery, order_note, address_id=None, total=0, quantit
     try:
         cart_items = CartItem.objects.filter(user=current_user).exclude(quantity=0)
         cart_count = cart_items.count()
-    except:
-        if cart_count <= 0:
-            return redirect('store')
+    except Exception as e:
+        print("Error capturado en place_order():", e)
+        messages.error(request, f'No se registró su orden. place_order() {e}')
+        return redirect('ecart')
+    if cart_count <= 0:
+        return redirect('ecart')
     
     if delivery == 'pickup':
         ship_cost = 0
@@ -312,11 +356,13 @@ def place_order(request, delivery, order_note, address_id=None, total=0, quantit
     for cart_item in cart_items:
         cart_price = 0
         # Aqui se puede verificar si el precio sigue siendo de promocion.
-        sub_total = cart_item.sub_total()
+        sub_total = cart_item.sub_total() 
+        #sub_total() verifica precio de promoción del model CartItem de ecart
         total +=  sub_total  # Total de productos
         quantity += cart_item.quantity
         # Aqui se puede verificar si el precio sigue siendo de promocion.
-        cart_price = cart_item.cartitem_price()
+        cart_price = cart_item.cartitem_price() 
+        #cartitem_price() verifica precio de promoción del model CartItem de ecart
         cart_item.price = cart_price
         cart_item.save()
 
@@ -382,9 +428,9 @@ def place_order(request, delivery, order_note, address_id=None, total=0, quantit
             # Rellenar de ceros 5 espacios
             # "42".zfill(5) >>> '00042'
             # Cambiar
-            
+            # Crear numero de orden
             id_len = len(str(data.id))
-            zeros = ''  # inicializar con 1 '0', para que agregue los ceros indicados
+            zeros = ''  # inicializar con un '0', para que agregue los ceros indicados
             if id_len < 6:                
                 for i in range(6-id_len):
                     zeros += '0'
@@ -408,13 +454,14 @@ def place_order(request, delivery, order_note, address_id=None, total=0, quantit
             'g_total': g_total,
             'ship_total': ship_total,
             'delivery': delivery,
+            'collect': 0,
         }
-        return render(request, 'order/payment_kleen.html', context)        
+        return render(request, 'order/payment_kleen.html', context)
     else:
         return redirect('checkout')
 
 
-#Función para usarse con json y Paypal
+#Función para usarse SOLO con json y Paypal 
 def order_complete(request):
     order_number = request.GET.get('order_number')
     payment_id = request.GET.get('payment_id')
@@ -426,11 +473,18 @@ def order_complete(request):
             'order': order,
             'ordered_products': ordered_products,
             'payment': payment,
+            'COMPANY_LOGO': COMPANY_LOGO,
         }
+        #Agregado 20Jun Claude code
+        if request.GET.get('ticket') == '1':
+            return render(request, 'order/ticket_order.html', context)
         return render(request, "order/order_complete.html", context)
-    
-    except (Payment.DoesNotExist, Order.DoesNotExist):
-        return redirect('home')
+    except Exception as e:
+            print("Error capturado:", e)
+            messages.error(request, f'No se imprimió su orden. {e}')
+            return redirect('ecart')
+    #except (Payment.DoesNotExist, Order.DoesNotExist):
+    #    return redirect('dashboard')
 
     
 
