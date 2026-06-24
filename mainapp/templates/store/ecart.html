@@ -164,11 +164,18 @@
 			<p class="text-center mb-3">
 				<img src="{% static "./images/misc/payments.png" %}" height="26">
 			</p>
-			{% if total > 0 %}
-				<a href="{% url 'select_customer' total|stringformat:"f" 1 %}" class="btn btn-primary btn-block"> Procesar Orden </a>
-			{% else %}
-				<a href="{% url "store" %}" class="btn btn-outline-primary btn-block"> Buscar + servicios </a>
-			{% endif %}
+            <a id="btn-process-order" 
+                href="{% url 'select_customer' total|stringformat:"f" 1 %}" 
+                class="btn btn-primary btn-block"
+                {% if not total > 0 %}style="display:none;"{% endif %}>
+                Procesar Orden
+            </a>
+            <a id="btn-search-more"
+                href="{% url 'store' %}" 
+                class="btn btn-outline-primary btn-block"
+                {% if total > 0 %}style="display:none;"{% endif %}>
+                Buscar + servicios
+            </a>
 			<!--<a href="{% url "store" %}" class="btn btn-outline-primary btn-block">Buscar más</a>-->
 		</div> <!-- card-body.// -->
 		</div> <!-- card.// -->
@@ -279,6 +286,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
         setMinusState(minusBtn, data.new_quantity);
         setPlusState(plusBtn, data.new_quantity, data.available_stock);
+
+        const btnProcess = document.getElementById('btn-process-order');
+        const btnSearch  = document.getElementById('btn-search-more');
+
+        if (btnProcess && btnSearch) {
+            if (data.total > 0) {
+                const totalF = parseFloat(data.total).toFixed(6);
+                btnProcess.href         = `/ecart/select-customer/${totalF}/1/`;
+                btnProcess.style.display = '';
+                btnSearch.style.display  = 'none';
+            } else {
+                btnProcess.href          = '#';
+                btnProcess.style.display = 'none';
+                btnSearch.style.display  = '';
+            }
+        }
     }
 
     function sendQuantityUpdate(productId, cartItemId, quantity, row) {
