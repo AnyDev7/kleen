@@ -481,7 +481,7 @@ def order_complete(request):
         return render(request, "order/order_complete.html", context)
     except Exception as e:
             print("Error capturado:", e)
-            messages.error(request, f'No se imprimió su orden. {e}')
+            messages.error(request, f'Orden exitosa!, pero no se imprimió su orden. {e}')
             return redirect('ecart')
     #except (Payment.DoesNotExist, Order.DoesNotExist):
     #    return redirect('dashboard')

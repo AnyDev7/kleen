@@ -68,7 +68,9 @@
                                         
                                     </td>  <!--https://cssgradient.io/shades-of-green/-->
                                     <td width="250"> 
-                                        <a href="#" class="btn btn-primary">Rastrear envío</a>
+                                        <a href="#" class="btn btn-basic">Rastrear envío</a>
+                                        <!-- Por implementar: <a href="?order_number={{order.number|urlencode}}&payment_id={{payment.payment_id|urlencode}}&ticket=1" 
+                                                target="_blank" class="btn btn-secondary">Imprimir ticket</a>-->
                                         <a href=" {% url "order_detail" order.id %} " class="btn btn-info "> Detalles </a> 
                                         
                                         {% if not order.status == 'Pagada' %}

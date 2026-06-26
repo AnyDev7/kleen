@@ -167,16 +167,15 @@
             <a id="btn-process-order" 
                 href="{% url 'select_customer' total|stringformat:"f" 1 %}" 
                 class="btn btn-primary btn-block"
-                {% if not total > 0 %}style="display:none;"{% endif %}>
+                {% if not total > 0 %}style="display:none;"{% endif %}> <!--más simple esta línea: style="{{ total|yesno:",display:none;" }}>"-->
                 Procesar Orden
             </a>
             <a id="btn-search-more"
                 href="{% url 'store' %}" 
                 class="btn btn-outline-primary btn-block"
-                {% if total > 0 %}style="display:none;"{% endif %}>
+                {% if total > 0 %}style="display:none;"{% endif %}>  <!-- más simple: style="{{ total|yesno:"display:none;," }}>"-->
                 Buscar + servicios
             </a>
-			<!--<a href="{% url "store" %}" class="btn btn-outline-primary btn-block">Buscar más</a>-->
 		</div> <!-- card-body.// -->
 		</div> <!-- card.// -->
 

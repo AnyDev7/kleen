@@ -20,7 +20,7 @@ from django.utils.encoding import force_bytes
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import EmailMessage
 
-from order.models import Order, OrderProduct
+from order.models import Order, OrderProduct, Payment
 
 # * VERIFICAR ESTA LIBRERIA
 import requests
@@ -388,12 +388,15 @@ def my_orders(request):
         orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
         # Unir o sumar queryset's : https://stackoverflow.com/questions/29587382/how-to-add-an-model-instance-to-a-django-queryset
         orderproducts = OrderProduct.objects.filter(user__id=request.user.id, ordered=True)
+        #payment = Payment.objects.get(payment_id=order.payment_id)
         context = {
             'orders': orders,
             'orderproducts': orderproducts,
         }
     except:
         None
+    #if request.GET.get('ticket') == '1':
+    #        return render(request, 'order/ticket_order.html', context)
     return render(request, "account/my_orders.html", context)
 
 
