@@ -22,12 +22,12 @@
                     <div class="col-md-12">
                         <div class="table-responsive">
                             <table class="table table-hover">
-                                {% if not cr_closes %}
+                                {% if not cashcuts %}
                                 <p class="title mb-0">No hay cortes de caja de este usuario: {{user.full_name}}</p>
                                 <br>
                                 <a href="{% url 'logout' %}" class="btn  btn-primary"> <span class="text">Salir, inicia un corte</span> <i class="fas fa-shopping-cart"></i></a>
                                 {% else %}
-                                {% for cr_close in cr_closes %}
+                                {% for cashcut in cashcuts %}
                                 <tr>
                                     {% comment "Como mostrar solo la 1er imagen del set orderproducts de cada order" %}
                                     <td width="65">
@@ -41,35 +41,35 @@
                                     
                                     {% endcomment %}
                                     <td class="text-right mb-0">
-                                        <var class="price text-muted">Saldo total: ${{cr_close.final_balance|floatformat:"2g"}}</var> 
-                                        <var class="price text-muted">Efectivo: ${{cr_close.total_cash|floatformat:"2g"}}</var> 
-                                        {% if cr_close.collect_balance > 0 %}<p class="price text-muted mb-0">Cobranza: ${{cr_close.collect_balance|floatformat:"2g"}}</p> {% endif %}
+                                        <var class="price text-muted">Saldo total: ${{cashcut.final_balance|floatformat:"2g"}}</var> 
+                                        <var class="price text-muted">Efectivo: ${{cashcut.total_cash|floatformat:"2g"}}</var> 
+                                        {% if cashcut.collect_balance > 0 %}<p class="price text-muted mb-0">Cobranza: ${{cashcut.collect_balance|floatformat:"2g"}}</p> {% endif %}
                                     </td>
                                     <td>
-                                        <span {% if cr_close.status == 'Iniciado' %} style="color: #17B169;"
-                                        {% elif cr_close.status == 'Cerrado'  %} style="color: #007FFF;" 
-                                        {% endif %} > <b>{{cr_close.status}}</b> <a href=" {% url "crclose_detail" cr_close.id %} "><small> | Corte del  {{cr_close.start_at}} {% if cr_close.status == 'Cerrado'  %} al {{cr_close.end_at}}{% endif %}</small></span> <br>
+                                        <span {% if cashcut.status == 'Iniciado' %} style="color: #17B169;"
+                                        {% elif cashcut.status == 'Cerrado'  %} style="color: #007FFF;" 
+                                        {% endif %} > <b>{{cashcut.status}}</b> <a href=" {% url "cashcut_detail" cashcut.id %} "><small> | Corte del  {{cashcut.start_at}} {% if cashcut.status == 'Cerrado'  %} al {{cashcut.end_at}}{% endif %}</small></span> <br>
                                         <small></a> <span class="price text-muted small">
                                         <var class="price text-muted">Inicial </var>
-                                        ${{cr_close.initial_balance|floatformat:"2g"}} 
+                                        ${{cashcut.initial_balance|floatformat:"2g"}} 
                                         <var class="price text-muted">+ Ingresos efectivo </var>
-                                        ${{cr_close.cash_balance|floatformat:"2g"}} 
+                                        ${{cashcut.cash_balance|floatformat:"2g"}} 
                                         <var class="price text-muted">+ Ingresos transf. </var>
-                                        ${{cr_close.transfer_balance|floatformat:"2g"}}
+                                        ${{cashcut.transfer_balance|floatformat:"2g"}}
                                         <var class="price text-muted">+ Ingresos tarjeta </var>
-                                        ${{cr_close.card_balance|floatformat:"2g"}}
+                                        ${{cashcut.card_balance|floatformat:"2g"}}
                                         <var class="price text-muted">- Salidas </var>
-                                        ${{cr_close.outcomes|floatformat:"2g"}} =
+                                        ${{cashcut.outcomes|floatformat:"2g"}} =
                                         <var class="price text-muted">Saldo total </var>
-                                        ${{cr_close.final_balance|floatformat:"2g"}} --
+                                        ${{cashcut.final_balance|floatformat:"2g"}} --
                                         <var class="price text-muted">Ingresos del día: </var>
-                                        ${{cr_close.sales|floatformat:"2g"}} |
+                                        ${{cashcut.sales|floatformat:"2g"}} |
                                         <var class="price text-muted">Cobranza: </var>
-                                        ${{cr_close.collect_balance|floatformat:"2g"}} |
+                                        ${{cashcut.collect_balance|floatformat:"2g"}} |
                                         <var class="price text-muted">Total ingresos: </var>
-                                        ${{cr_close.incomes|floatformat:"2g"}} |
+                                        ${{cashcut.incomes|floatformat:"2g"}} |
                                         <var class="price text-muted">Saldo efectivo: </var>
-                                        ${{cr_close.total_cash|floatformat:"2g"}} |
+                                        ${{cashcut.total_cash|floatformat:"2g"}} |
                                         </span></small>
                                         
                                     </td>  <!--https://cssgradient.io/shades-of-green/-->

@@ -3,7 +3,9 @@ from treasury import views
 
 urlpatterns = [
     path('initial-cr/',views.initial_cr, name='initial_cr'),
-    path('cr-close/',views.cr_close, name='cr_close'),
-    path('my-cr-closes/',views.my_cr_closes, name='my_cr_closes'),
-    path('crclose-detail/<int:cr_close_id>/',views.crclose_detail, name='crclose_detail'),
+    path('cash-cut/', views.cash_cut, name='cash_cut'),
+    #Claude 26Jun 2026
+    path('cash-cut/<int:cut_id>/', views.cash_cut, name='cash_cut_detail'),
+    path('my-cashcuts/',views.my_cashcuts, name='my_cashcuts'),
+    path('cashcut-detail/<int:cashcut_id>/',views.cashcut_detail, name='cashcut_detail'),
 ]

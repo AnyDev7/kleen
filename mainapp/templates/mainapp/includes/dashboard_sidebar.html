@@ -2,8 +2,8 @@
     <!--   SIDEBAR   -->
     <ul class="list-group">
         <a class="list-group-item {% if '/account/' == request.path %}active{% endif %}" href="{% url 'dashboard' %}"> Mi Cuenta </a>
-        <a class="list-group-item {% if '/cr-close/' in request.path %}active{% endif %}" href="{% url 'cr_close' %}"> Corte de caja </a>
-        <a class="list-group-item {% if '/my-cr-closes/' in request.path %}active{% endif %}" href="{% url 'my_cr_closes' %}"> Mis cortes </a>
+        <a class="list-group-item {% if '/cr-close/' in request.path %}active{% endif %}" href="{% url 'cash_cut' %}"> Corte de caja </a>
+        <a class="list-group-item {% if '/my-cr-closes/' in request.path %}active{% endif %}" href="{% url 'my_cashcuts' %}"> Mis cortes </a>
         <a class="list-group-item {% if '/my-orders/' in request.path %}active{% endif %}" href="{% url 'my_orders' %}"> Mis órdenes </a>
         <!-- <a class="list-group-item {% if '/edit-profile/' in request.path %}active{% endif %}" href="{% url 'edit_profile' %}"> Mi perfil </a>-->
         <!--<a class="list-group-item {% if '/change-password/' in request.path %}active{% endif %}" href=" {% url 'change_password' %} "> Cambiar contraseña </a>-->

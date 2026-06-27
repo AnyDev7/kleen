@@ -3,7 +3,7 @@ from store.models import Product, Rating
 from kart.settings import COMPANY, COMPANY_BANN1, COMPANY_BANN2, COMPANY_BANN3, COMPANY_SLOGAN, COMPANY_SLOG_SUB1, COMPANY_SLOG_SUB2
 from account.models import Account
 from account.views import dashboard, logout
-from treasury.models import CRClosing
+from treasury.models import CashCut
 from treasury.views import check_cr
 
 #from account.views import addresses

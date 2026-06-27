@@ -4,7 +4,7 @@ from django.contrib import messages
 from datetime import datetime
 
 from kart.settings import COMPANY, COMPANY_LOGO, COMPANY_BANN1, COMPANY_BANN2, COMPANY_BANN3, COMPANY_SLOGAN, COMPANY_SLOG_SUB1, COMPANY_SLOG_SUB2
-from .models import CRClosing
+from .models import CashCut
 from order.models import Payment
 from ecart.views import create_menu
 
@@ -14,10 +14,10 @@ from ecart.views import create_menu
 def check_cr(request):
     try:
         # Verificar si hay corte no cerrado, devuelve el último corte sin cerrar
-        cr_opened = CRClosing.objects.last()
-        #last_crclosing = CRClosing.objects.last()
-        #last_crclosing1 = CRClosing.objects.order_by('-start_at').first()
-        #last_crclosing2 = CRClosing.objects.latest('start_at')
+        cr_opened = CashCut.objects.last()
+        #last_cashcut = CashCut.objects.last()
+        #last_cashcut1 = CashCut.objects.order_by('-start_at').first()
+        #last_cashcut2 = CashCut.objects.latest('start_at')
         if not cr_opened:
             #No hay registros, BD nueva
             return False, False
@@ -37,7 +37,7 @@ def initial_cr(request):
         #Obtener datos del request POST
         initial = float(request.POST.get('initial')) 
         try:
-            cr_new = CRClosing()
+            cr_new = CashCut()
             cr_new.user_id = request.user.id 
             print(f"User id :{cr_new.user_id}")
             #ForeignKey en cr_new.user_id, _id se refiere al id del modelo Account
@@ -60,13 +60,14 @@ def initial_cr(request):
     return render(request, 'mainapp/create_menu.html', context) # 'mainapp' subdirectorio en 'templates'
 
 
-def cr_close(request):
+def cash_cut(request, cut_id=None):
     total_balance= total_cash= total_transfer= total_card= total_collect= total_sales = 0
 
     try:
         if request.GET.get('ticket') != '1':
-            #Obtener datos del corte abierto
-            last_cr = CRClosing.objects.last()
+            #Obtener datos del corte abierto, del usuario actual
+            #Claude 26Jun 2026
+            last_cr = CashCut.objects.filter(user=request.user, status="Iniciado").latest('start_at')
             #Obtener pagos realizados en el periodo de ese corte
             payments_cr = Payment.objects.filter(created_at__gte=last_cr.start_at, user_id = request.user.id)
             #print(f"Corte abierto: {last_cr}, pagos dentro del corte: {payments_cr}")
@@ -89,7 +90,7 @@ def cr_close(request):
 
                 #Actualizar el corte y cerrarlo
                 last_cr.incomes = total_balance
-                last_cr.outcomes = 0
+                last_cr.outcomes = 0  #por desarrollar función de entradas y salidas
                 last_cr.sales = total_sales
                 last_cr.cash_balance = total_cash
                 last_cr.transfer_balance = total_transfer
@@ -103,17 +104,23 @@ def cr_close(request):
                 last_cr.total_cash = last_cr.initial_balance + last_cr.cash_balance
                 last_cr.status = "Cerrado"
                 last_cr.save()
+                print(f'Estatus del corte: {last_cr.status}')
+                messages.info(request, f'Estatus del corte: {last_cr.status}')
             else:
                 if last_cr.status == "Cerrado" or not last_cr:
                     messages.info(request, f"No hay corte abierto para procesar. Saliendo...  Entre para crear nuevo corte.")
                     return redirect('logout')
                 elif not payments_cr:
                     messages.info(request, f"No hay pagos ni ingresos para procesar.")
-                    #Agregar si desea hacer el corte en ceros.
+                    #Agregar: Validar  si desea hacer el corte en ceros.
                 
                 return redirect('dashboard')
         else:
-            last_cr = CRClosing.objects.last()
+            #Claude 26Jun 2026
+            if cut_id:
+                last_cr = get_object_or_404(CashCut, id=cut_id)
+            else:
+                last_cr = CashCut.objects.filter(user=request.user).latest('start_at')
                     
     except Exception as e:
         #print("Error capturado:", e)
@@ -125,33 +132,33 @@ def cr_close(request):
         'COMPANY_LOGO': COMPANY_LOGO
     }
     if request.GET.get('ticket') == '1':
-        return render(request, 'treasury/ticket_cr_close.html', context)
-    return render(request, 'treasury/cr_close.html', context) # 'treasury' subdirectorio en 'templates' de mainapp
+        return render(request, 'treasury/ticket_cashcut.html', context)
+    return render(request, 'treasury/cashcut.html', context) # 'treasury' subdirectorio en 'templates' de mainapp
 
 
-def my_cr_closes(request):
+def my_cashcuts(request):
 
     try:
-        cr_closes = CRClosing.objects.order_by('-start_at').filter(user_id = request.user.id)
+        cashcuts = CashCut.objects.order_by('-start_at').filter(user_id = request.user.id)
         # Unir o sumar queryset's : https://stackoverflow.com/questions/29587382/how-to-add-an-model-instance-to-a-django-queryset
         #orderproducts = OrderProduct.objects.filter(user__id=request.user.id, ordered=True)
         context = {
-            'cr_closes': cr_closes,
+            'cashcuts': cashcuts,
             #'orderproducts': orderproducts,
         }
     except Exception as e:
         print("Error capturado:", e)
-        messages.warning(request, f"Error capturado: {e}")
+        messages.warning(request, f"Error capturado MIS CORTES: {e}")
         return redirect('dashboard')
-    return render(request, "treasury/my_cr_closes.html", context)
+    return render(request, "treasury/my_cashcuts.html", context)
 
 
 @login_required(login_url='login')
-def crclose_detail(request, cr_close_id):
-    cr_close = get_object_or_404(CRClosing, id=cr_close_id)
+def cashcut_detail(request, cashcut_id):
+    cashcut = get_object_or_404(CashCut, id=cashcut_id)
     #ordered_products = OrderProduct.objects.filter(order__id=order_id) # order__id: doble 'underscore' para accesar al campo de foreignkey
     context = {
-        'cr_close': cr_close,
+        'cashcut': cashcut,
         'COMPANY_LOGO': COMPANY_LOGO,
     }
-    return render(request, 'treasury/cr_close_detail.html', context)
+    return render(request, 'treasury/cashcut_detail.html', context)

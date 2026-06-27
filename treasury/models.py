@@ -28,7 +28,7 @@ class CashRegister(models.Model):
         ('Enabled', 'Activa'),
         ('Disabled', 'Inactiva'),
     )
-    cr_name = models.CharField("Caja", max_length=20, default="Principal")
+    name = models.CharField("Caja", max_length=20, default="")
     status = models.CharField("Estatus", max_length=20, choices=STATUS, default="Activa")
     created_at = models.DateTimeField("Creada", auto_now_add=True)
     updated_at = models.DateTimeField("Actualizada", auto_now=True)
@@ -38,10 +38,10 @@ class CashRegister(models.Model):
         verbose_name_plural = 'Cajas'
 
     def __str__(self):
-        return self.cr_name
+        return self.name
     
 
-class CRClosing(models.Model):
+class CashCut(models.Model):
     STATUS = (
         ('Started', 'Iniciado'),
         ('Closed', 'Cerrado'),
@@ -49,8 +49,6 @@ class CRClosing(models.Model):
     user = models.ForeignKey(Account, verbose_name='Usuario', on_delete=models.SET_NULL, null=True)
     cashregister = models.ForeignKey(CashRegister, verbose_name='Caja', on_delete=models.SET_NULL, null=True, blank=True)
     #cashier = models.ForeignKey(Cashier, verbose_name='Cajero', on_delete=models.SET_NULL, null=True, blank=True)
-
-    #number = models.CharField("Orden", max_length=20)
     
     initial_balance = models.FloatField("Saldo inicial", null=True, default=0)
     incomes = models.FloatField("Total ingresos", null=True, default=0)
@@ -86,7 +84,7 @@ class CRClosing(models.Model):
 
 class IncomeOutcome(models.Model):
     user = models.ForeignKey(Account, verbose_name='Usuario', on_delete=models.SET_NULL, null=True)
-    crclosing = models.ForeignKey(CRClosing, verbose_name='Corte', on_delete=models.SET_NULL, null=True)
+    cashcut = models.ForeignKey(CashCut, verbose_name='Corte', on_delete=models.SET_NULL, null=True)
     income = models.BooleanField('Entrada', default=False)
     outcome = models.BooleanField('Salida', default=False)
     amount = models.FloatField("Importe")
