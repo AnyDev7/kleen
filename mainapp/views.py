@@ -39,7 +39,7 @@ def home(request):
     elif status == False or status == "Cerrado":
         #crear un corte
         messages.info(request, f'Crear nuevo corte del usuario:  {request.user.username}.')
-        return render(request, 'treasury/cr_open.html', context) # 'treasury' subdirectorio en 'templates'
+        return render(request, 'treasury/cashcut_open.html', context) # 'treasury' subdirectorio en 'templates'
     else:
         return redirect('home')
 

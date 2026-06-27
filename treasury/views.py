@@ -39,14 +39,16 @@ def initial_cr(request):
         try:
             cr_new = CashCut()
             cr_new.user_id = request.user.id 
-            print(f"User id :{cr_new.user_id}")
+            #print(f"User id :{cr_new.user_id}")
             #ForeignKey en cr_new.user_id, _id se refiere al id del modelo Account
             cr_new.initial_balance = initial
-            print(f"Saldo inicial :{cr_new.initial_balance}")
+            #print(f"Saldo inicial :{cr_new.initial_balance}")
             cr_new.save()
-            print(f"Se creo nuevo corte:{cr_new}")
+            #print(f"Se creo nuevo corte:{cr_new}")
         except Exception as e:
-            print("Error capturado:", e)
+            #print("Error capturado:", e)
+            messages.warning(request, f"Error capturado, en initial_cr: {e}")
+            return redirect('dashboard')
     #create_menu(request)
     context = {
         'COMPANY': COMPANY,
