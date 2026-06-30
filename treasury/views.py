@@ -4,7 +4,7 @@ from django.contrib import messages
 from datetime import datetime
 
 from kart.settings import COMPANY, COMPANY_LOGO, COMPANY_BANN1, COMPANY_BANN2, COMPANY_BANN3, COMPANY_SLOGAN, COMPANY_SLOG_SUB1, COMPANY_SLOG_SUB2
-from .models import CashCut
+from .models import CashCut, CashRegister
 from order.models import Payment
 from ecart.views import create_menu
 
@@ -35,20 +35,24 @@ def check_cr(request):
 def initial_cr(request):
     if request.method == 'POST':
         #Obtener datos del request POST
-        initial = float(request.POST.get('initial')) 
+        initial = float(request.POST.get('initial'))
+        cr_select = int(request.POST.get('cr_selected'))
+        print(f'CR_SELECT de <select> desde POST : {cr_select}')
         try:
             cr_new = CashCut()
+            cr_selected=CashRegister.objects.get(id=cr_select)
             cr_new.user_id = request.user.id 
             #print(f"User id :{cr_new.user_id}")
             #ForeignKey en cr_new.user_id, _id se refiere al id del modelo Account
             cr_new.initial_balance = initial
             #print(f"Saldo inicial :{cr_new.initial_balance}")
+            cr_new.cashregister = cr_selected
             cr_new.save()
             #print(f"Se creo nuevo corte:{cr_new}")
         except Exception as e:
             #print("Error capturado:", e)
             messages.warning(request, f"Error capturado, en initial_cr: {e}")
-            return redirect('dashboard')
+            return redirect('logout')
     #create_menu(request)
     context = {
         'COMPANY': COMPANY,

@@ -63,7 +63,7 @@ class CashCut(models.Model):
     total_cash = models.FloatField("Saldo efectivo", null=True, default=0)
     status = models.CharField("Estatus", max_length=15, choices=STATUS, default="Iniciado")
     start_at = models.DateTimeField("Inicio", auto_now_add=True)
-    end_at = models.DateTimeField("Finalizo", auto_now=True)
+    end_at = models.DateTimeField("Finalizo", null=True)
 
     class Meta:
         verbose_name = 'Corte'

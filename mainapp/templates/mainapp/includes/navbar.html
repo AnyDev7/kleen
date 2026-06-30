@@ -3,19 +3,21 @@
 
 <header class="section-header">
     <nav class="navbar p-md-0 navbar-expand-sm navbar-light border-bottom">
-    <div class="container">
+    <div class="container" style="background: #4992f3">
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarTop4" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
+        Button
+        <span class="navbar-toggler-icon">Span</span>
       </button>
+      <h4 class="section-title text-center text-white">LAVANDERIA REFORMA NORTE </h4>
 
       <div class="collapse navbar-collapse" id="navbarTop4">
         
         <ul class="navbar-nav mr-auto">
             <li class="nav-item dropdown">
-                 <a href="#" class="nav-link"></a> <!--Inglish-->
+                 <a href="#" class="nav-link"></a> <!--Lista de idiomas English-->
             </li>
             <li class="nav-item dropdown">
-                <a href="#" class="nav-link"></a> <!--USD-->
+                <a href="#" class="nav-link"></a> <!--Lista de monedas MXN-->
             </li>
         </ul>
 
@@ -32,7 +34,7 @@
         <div class="container">
     <div class="row align-items-center">
         <div class="col-lg-2 col-md-3 col-6">
-            <a href=" {% url "home" %} " class="brand-wrap">
+            <a href=" {% url 'create_menu' 1 %} " class="brand-wrap">
                 <img class="logo" src=" {% static "./images/lav-reforma-logo-azul-rectan.png" %} ">
             </a> <!-- brand-wrap.// -->
         </div>

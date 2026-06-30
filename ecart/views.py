@@ -1,7 +1,7 @@
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib import messages
-from kart.settings import STATES_MX
+from kart.settings import STATES_MX, COMPANY, COMPANY_BANN1, COMPANY_BANN2, COMPANY_BANN3, COMPANY_SLOGAN, COMPANY_SLOG_SUB1, COMPANY_SLOG_SUB2
 from store.models import Product, Variation, StockVar
 from ecart.models import Cart, CartItem
 from account.models import Address
@@ -35,10 +35,10 @@ def create_menu(request, flag=False, qty=0):
     cart_item_exists = None
     current_user = request.user
     try:
-        # Clear Cart o comparar item by item
-        CartItem.objects.filter(user=current_user).delete()
+        # Clear Cart / o comparar item by item
+        CartItem.objects.filter(user=current_user).delete() #Clear CartItem
         products = Product.objects.all().filter(is_available=True)
-        #Cargar con bucle todos los productos en el ecart, sesión actual.
+        # o Cargar con bucle todos los productos en el ecart, sesión actual.
         try:
             cart = Cart.objects.get(cart_id=_cart_id(request)) # Conseguir el Cart actual con la cart_id de la sesion actual        
         except Cart.DoesNotExist:
@@ -58,16 +58,27 @@ def create_menu(request, flag=False, qty=0):
                 cart_item = CartItem.objects.get(product__id = product.id, cart=cart)
                 cart_item.quantity = 0
                 cart_item.user=current_user
-                # Increase cart item quantity con boton +, o reduce con botón -
                 cart_item.save()
             else:
-                cart_item = CartItem.objects.create(user=current_user, product=product, cart=cart, quantity=0)
+                cart_item = CartItem.objects.create(user=current_user, 
+                product=product, cart=cart, quantity=0)
                 cart_item.save()
     except Exception as e:
         messages.warning(request, f"Error capturado: {e}")
         return redirect ('dashboard')
-    
-    return redirect('ecart')
+    if flag:
+        context = {
+        'COMPANY': COMPANY,
+        'COMPANY_BANN1': COMPANY_BANN1,
+        'COMPANY_BANN2': COMPANY_BANN2,
+        'COMPANY_BANN3': COMPANY_BANN3,
+        'COMPANY_SLOGAN': COMPANY_SLOGAN,
+        'COMPANY_SLOG_SUB1': COMPANY_SLOG_SUB1,
+        'COMPANY_SLOG_SUB2': COMPANY_SLOG_SUB2,
+            }
+        return render(request, 'mainapp/create_menu.html', context) # 'mainapp' subdirectorio en 'templates'
+    else:
+        return redirect('ecart')
 
 
 def add_prod(request, product_id, flag=False, qty=0): # ADD_CART course

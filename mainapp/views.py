@@ -3,7 +3,7 @@ from store.models import Product, Rating
 from kart.settings import COMPANY, COMPANY_BANN1, COMPANY_BANN2, COMPANY_BANN3, COMPANY_SLOGAN, COMPANY_SLOG_SUB1, COMPANY_SLOG_SUB2
 from account.models import Account
 from account.views import dashboard, logout
-from treasury.models import CashCut
+from treasury.models import CashRegister
 from treasury.views import check_cr
 
 #from account.views import addresses
@@ -13,15 +13,23 @@ from django.contrib import messages
 
 @login_required(login_url='login')
 def home(request):
+    cashregisters = None
+    try:
+        cashregisters = CashRegister.objects.filter(status="Activa") #.order_by('name')
+    except CashRegister.DoesNotExist:
+        cashregisters = False
+        messages.warning(request, 'No existen cajas activas. En home()')
+        return redirect('logout')
     context = {
-               'COMPANY': COMPANY,
-               'COMPANY_BANN1': COMPANY_BANN1,
-               'COMPANY_BANN2': COMPANY_BANN2,
-               'COMPANY_BANN3': COMPANY_BANN3,
-               'COMPANY_SLOGAN': COMPANY_SLOGAN,
-               'COMPANY_SLOG_SUB1': COMPANY_SLOG_SUB1,
-               'COMPANY_SLOG_SUB2': COMPANY_SLOG_SUB2,
-            }
+        'cashregisters': cashregisters,
+        'COMPANY': COMPANY,
+        'COMPANY_BANN1': COMPANY_BANN1,
+        'COMPANY_BANN2': COMPANY_BANN2,
+        'COMPANY_BANN3': COMPANY_BANN3,
+        'COMPANY_SLOGAN': COMPANY_SLOGAN,
+        'COMPANY_SLOG_SUB1': COMPANY_SLOG_SUB1,
+        'COMPANY_SLOG_SUB2': COMPANY_SLOG_SUB2,
+        }
     # aqui va la lógica de corte de caja anterior abierto o cerrado
     previous_cr, status = check_cr(request)
     #previous_cr contiene instancia de último cr_closing
