@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from ecart.models import CartItem
 from .forms import OrderForm
-from .models import Order, Payment, OrderProduct
+from .models import Order, Payment, OrderProduct, Customer
 from store.models import Product
 from account.models import Address
 from kart.settings import COMPANY, COMPANY_STREET, COMPANY_CITY, COMPANY_STATE, COMPANY_ZIP, COMPANY_COUNTRY, COMPANY_PHONE, COMPANY_LOGO
@@ -82,7 +82,7 @@ def payment_deferred(request):
         return redirect('my_orders')
 
 
-@csrf_protect #CHECAR 15Abr2026
+@csrf_protect #CHECAR si es necesario: @csrf_protect  15Abr2026
 def payment_cash(request, collect):
     if request.method == 'POST':
         #Obtener datos del request POST
@@ -315,7 +315,7 @@ def payment(request):
     return JsonResponse(data)
 
 
-def place_order(request, delivery, order_note, address_id=None, total=0, quantity=0):
+def place_order(request, delivery, order_note, customer_id=1, address_id=None, total=0, quantity=0):
     current_user = request.user
     cart_count = 0
     ship_cost = 99  # Crear tabla para tax y para ship_cost (por zonas por estados calcular tarifa)
@@ -323,6 +323,12 @@ def place_order(request, delivery, order_note, address_id=None, total=0, quantit
     sub_total = 0
     g_total = 0
     address = None
+    try:
+        customer = Customer.objects.get(id=customer_id)
+        #print("Cliente:", customer)
+    except Exception as e:
+        messages.error(request, f'No existe el cliente. place_order() {e}')
+        return redirect('ecart')
 
     try:
         cart_items = CartItem.objects.filter(user=current_user).exclude(quantity=0)
@@ -382,7 +388,8 @@ def place_order(request, delivery, order_note, address_id=None, total=0, quantit
 
         try:
             data = Order()
-            data.user_id = current_user.id
+            data.user_id = current_user.id # en el modelo la relación se hace un campo user_id
+            data.customer_id = customer.id # en el modelo la relación se hace un campo customer_id
             data.first_name = current_user.first_name
             data.last_name = current_user.last_name
             data.email = current_user.email
@@ -440,8 +447,10 @@ def place_order(request, delivery, order_note, address_id=None, total=0, quantit
             
             data.number = order_number
             data.save()
-        except:
-            print("error al crear orden")
+        except Exception as e:
+            messages.error(request, f'Error al crear la orden. place_order() {e}')
+            return redirect('ecart')
+            
 
         # Orden generada (que esta en DB) enviar a template para PAGO
         order = get_object_or_404(Order,user=current_user, number=order_number, is_ordered=False)

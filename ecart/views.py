@@ -467,35 +467,30 @@ def select_address(request, total="", flag=0):
 
 @login_required(login_url='login')
 def checkout(request, address_id=0, total=0, tax=0, ship_cost=0, g_total=0, quantity=0):
-    delivery = None
-    shipment_option = None
-    pickup_option = False
+    customer_id = 1
+    delivery = 'pickup'
+    order_note = "Sin notas"
     address_option = False
     #se debe obtener la dirección del customer
     address = 0
-    customer = None
 
     if request.method == 'POST':
         # get from 'POST' customer id / food app -> address, pickup, order_note
-        # 8 Abril 2026 - Definir lógica para manejo de el tipo de delivery (ENTREGA),
-        # por pickup o shipment, la variable shipment_option se enviaba con el valor en texto.
-        customer = request.POST.get("customer")
-        
-        #shipment_option = request.POST.get("shipment")
-        #pickup_option = request.POST.get("pickup")
+        customer_id = int(request.POST.get("customer_select"))
         delivery = request.POST.get("delivery")
-        
         order_note = request.POST.get("order_note")
+    
+    if delivery == 'ship':
+        address_option = True
+    elif delivery == 'pickup':
+        address_option = False
+    else:
+        delivery = 'pickup'
 
-        if delivery == 'ship':
-            address_option = True
-        elif delivery == 'pickup':
-            address_option = False
-        else:
-            delivery = 'pickup'
-
-    #Traemos de select_customer.html el 'customer', obtener la dirección del customer
-    # ...
+    #obtener el customer, con su dirección
+    customer_selected = get_object_or_404(Customer, id=customer_id)
+    print(f'Cliente seleccionado: customer_selected.id {customer_selected.id}')
+    #que ventaja tiene get_object_or_404 vs try: except:
 
     # Aqui se obtiene la direccion del user, no del customer
     #if address_option == True:
@@ -523,10 +518,10 @@ def checkout(request, address_id=0, total=0, tax=0, ship_cost=0, g_total=0, quan
             # checar funcion/método def sub_total(request) en el modelo de CartItem
             # cart_item.sub_total = una instancia, cart_item.sub_total() -> valor resultante, 
             cart_price = 0
-            sub_total = cart_item.sub_total()
+            sub_total = cart_item.sub_total() #calcular subtotal
             total +=  sub_total
             quantity += cart_item.quantity
-            cart_price = cart_item.cartitem_price()
+            cart_price = cart_item.cartitem_price() #verificar precio de promocion
             cart_item.price = cart_price
             cart_item.save()
         
@@ -535,27 +530,27 @@ def checkout(request, address_id=0, total=0, tax=0, ship_cost=0, g_total=0, quan
         ship_total = total + ship_cost
         tax = 0
         g_total = ship_total + tax # debería ser si se cobran impuestos: g_total = ship_total + tax
+        context = {
+        'total': total,
+        'tax': tax,
+        'ship_cost': ship_cost,
+        'g_total': g_total,
+        'quantity': quantity,
+        'cart_items': cart_items,
+        'delivery': delivery,
+        'address_option': address_option,
+        'address': address,
+        'order_note': order_note,
+        'customer': customer_selected.id,
+        }
+
+        # Enviar primero a selección de dirección: return render(request, 'store/select_address.html', context)
+        return render(request, 'store/checkout.html', context)
 
     except Cart.DoesNotExist or CartItem.DoesNotExist:
-        cart_items = None
-        pass
+        messages.warning(request, f"Error no existe Cart o CartItem: checkout")
+        return redirect ('ecart')
+            
         
-        
-        
-    context = {
-    'total': total,
-    'tax': tax,
-    'ship_cost': ship_cost,
-    'g_total': g_total,
-    'quantity': quantity,
-    'cart_items': cart_items,
-    'delivery': delivery,
-    'address_option': address_option,
-    'address': address,
-    'order_note': order_note,
-    'customer': customer,
-    }
-
-    # Enviar primero a selección de dirección: return render(request, 'store/select_address.html', context)
-    return render(request, 'store/checkout.html', context)
+    
     

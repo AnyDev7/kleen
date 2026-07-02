@@ -36,87 +36,115 @@
 <div class="row">
 <aside class="col-lg-9"> <!-- Maximo ancho de aside total 12, en este caso 9 + 3 = 12 -->
 <div class="card">
-<div class="card-body" style="background: #e1e4f0">
-    <div class="row">
-    {% for cart_item in cart_items %}
-    <div class="col-md-4 mb-3">
-        <div class="card cart-item-card h-100">
-            <div class="card-body p-2">
-                <!-- Imagen y nombre -->
-                <div class="text-center mb-2">
-                    <img src="{{ cart_item.product.image1.url }}" class="img-fluid" style="max-height:80px; object-fit:contain;">
-                </div>
-                <p class="text-center font-weight-bold mb-1 small">
-                    <a href="{{ cart_item.product.get_url }}" class="text-dark">{{ cart_item.product.name }}</a>
-                </p>
-                {% if cart_item.variations.all %}
-                <p class="text-center text-muted mb-1" style="font-size:11px;">
-                    {% for item in cart_item.variations.all %}
-                        {{ item.variation|capfirst }}: {{ item.value|capfirst }}{% if not forloop.last %}, {% endif %}
-                    {% endfor %}
-                </p>
-                {% endif %}
-                <hr class="my-1">
-                <!-- Precio -->
-                <div class="text-center mb-1">
-                    {% if cart_item.product.has_discount %}
-                        <var class="price sm">${{ cart_item.product.low_price|floatformat:"2g" }}</var>
-                        <del class="price-old small text-muted">${{ cart_item.product.price|floatformat:"2g" }}</del>
-                    {% else %}
-                        <var class="price">${{ cart_item.product.price|floatformat:"2g" }}</var>
-                    {% endif %}
-                </div>
-                <!-- Importe / subtotal -->
-                <div class="text-center mb-2">
-                    <small class="text-muted">Importe: </small>
-                    <var class="price sm item-subtotal font-weight-bold">${{ cart_item.sub_total|floatformat:"2g" }}</var>
-                </div>
-                <!-- Controles cantidad -->
-                <div class="d-flex justify-content-center mb-2"> <!--div exterior para centrar todo en card-->
-                    <div class="input-group input-spinner" style="width: auto;">
-                        <div class="input-group-prepend">
-                            <a href="javascript:void(0)"
-                                data-product-id="{{ cart_item.product.id }}"
-                                data-cartitem-id="{{ cart_item.id }}"
-                                data-direction="-1"
-                                class="btn btn-light btn-step{% if cart_item.quantity <= 0 %} disabled{% endif %}"
-                                {% if cart_item.quantity <= 0 %}aria-disabled="true" tabindex="-1"{% endif %}
-                                type="button">
-                                <i class="fa fa-minus"></i>
-                            </a>
-                        </div>
-                        <input name="qty_bunch" type="text" class="form-control text-center"
-                            value="{{ cart_item.quantity }}"
-                            data-stock="{{ cart_item.product.stock }}"
-                            style="width:50px;">
-                        <div class="input-group-append">
-                            <a href="javascript:void(0)"
-                                data-product-id="{{ cart_item.product.id }}"
-                                data-cartitem-id="{{ cart_item.id }}"
-                                data-direction="1"
-                                class="btn btn-light btn-step{% if cart_item.quantity >= cart_item.product.stock %} disabled{% endif %}"
-                                {% if cart_item.quantity >= cart_item.product.stock %}aria-disabled="true" tabindex="-1"{% endif %}
-                                type="button">
-                                <i class="fa fa-plus"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div> <!--div exterior para centrar todo en card-->
-                <!-- Botón bunch -->
-                <div class="text-center">
-                    <a href="javascript:void(0)"
-                        data-product-id="{{ cart_item.product.id }}"
-                        data-cartitem-id="{{ cart_item.id }}"
-                        name="bunch" class="btn btn-primary btn-sm btn-bunch" type="button">
-                        <i class="fa fa-cubes"></i> 
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-    {% endfor %}
-    </div>
-</div>
+<table class="table table-borderless table-shopping-cart">
+<thead class="text-muted">
+<tr class="small text-uppercase">
+  <th scope="col">Producto</th>
+  <th scope="col" width="140">Cantidad</th>
+  <th scope="col" width="50"></th>
+  <th scope="col" width="100">Precio</th>
+  <th scope="col" width="110">Importe</th>
+  <th scope="col" class="text-right" width="60"> </th> <!-- "200" -->
+</tr>
+</thead>
+
+<tbody>
+{% for cart_item in cart_items %}
+<tr>    
+	<td>
+		<figure class="itemside align-items-center">
+			<div class="aside"><img src="{{ cart_item.product.image1.url }}" class="img-sm"></div>
+			<figcaption class="info">
+				<a href="{{ cart_item.product.get_url }}" class="title text-dark">{{cart_item.product.name}}</a>
+				<p class="text-muted small"><small> {{cart_item.product.description}} </small>
+				
+					{% if cart_item.variations.all  %}
+						{% for item in cart_item.variations.all %}
+							<br>
+						<small>{{item.variation | capfirst}}: {{item.value | capfirst}} </small>
+							
+						{% endfor %}
+					{% endif %}
+				</p>
+			</figcaption>
+		</figure>
+	</td>
+	<td> 
+		<!-- col.// -->
+		<div class="col"> 
+			<div class="input-group input-spinner">
+				<div class="input-group-prepend">
+					<!-- <a name="btn-minus" href=" {% url "minus_add_to_prod" cart_item.product.id cart_item.id 0 %} " class="btn btn-light" type="button" id="btn-minus"> <i class="fa fa-minus"></i> </a> -->
+					<!-- Agregado con Claude code 17Jun 2026--> 
+					<!--Actualizado Claude 18Jun 2026 -->
+					<a href="javascript:void(0)"
+						data-product-id="{{ cart_item.product.id }}"
+						data-cartitem-id="{{ cart_item.id }}"
+						data-direction="-1"
+						class="btn btn-light btn-step{% if cart_item.quantity <= 0 %} disabled{% endif %}"
+						{% if cart_item.quantity <= 0 %}aria-disabled="true" tabindex="-1"{% endif %}
+						type="button">
+						<i class="fa fa-minus"></i>
+					</a>
+				</div>
+				<!-- Actualizado Claude 18Jun 2026 -->
+				 <input name="qty_bunch" type="text" class="form-control"
+    				value="{{ cart_item.quantity }}"
+				    data-stock="{{ cart_item.product.stock }}" style="width: 200px;">
+				<div class="input-group-append">
+					<!-- Agregado Claude code 17Jun 2026--> 
+					<!--Actualizado Claude 18Jun 2026-->
+					<a href="javascript:void(0)"
+						data-product-id="{{ cart_item.product.id }}"
+						data-cartitem-id="{{ cart_item.id }}"
+						data-direction="1"
+						class="btn btn-light btn-step{% if cart_item.quantity >= cart_item.product.stock %} disabled{% endif %}"
+						{% if cart_item.quantity >= cart_item.product.stock %}aria-disabled="true" tabindex="-1"{% endif %}
+						type="button">
+						<i class="fa fa-plus"></i>
+					</a>
+				</div>
+			</div> <!-- input-group.// -->
+		</div> <!-- col.// -->
+	</td>
+	<td>
+		<!-- Agregado con Claude code 16Jun 2026--> 
+		<div class="col"> 
+			<div class="input-group-bunch">
+				<a href="javascript:void(0)" 
+				data-product-id="{{ cart_item.product.id }}" 
+				data-cartitem-id="{{ cart_item.id }}" 
+				name="bunch" class="btn btn-primary btn-bunch" type="button" id="button-bunch"> 
+				<i class="fa fa-cubes"></i> 
+				</a>
+			</div>
+		</div>
+	</td>
+	<td> 
+		<div class="price-wrap"> 
+            {% if cart_item.product.has_discount %}
+							<var class="price sm">${{cart_item.product.low_price|floatformat:"2g"}}</var> 
+							<del class="price-old"> ${{cart_item.product.price|floatformat:"2g"}} </del> 
+            {% else %}
+            	<var class="price">${{cart_item.product.price|floatformat:"2g"}}</var> 
+            {% endif %}
+		</div> <!-- price-wrap .// -->
+	</td>
+	<td> 
+		<div class="price-wrap"> 
+			<var class="price sm item-subtotal">${{cart_item.sub_total|floatformat:"2g" }}</var> 
+		</div> <!-- sub_total-wrap .// -->
+	</td>
+	<!-- Quitar este boton 
+	<td class="text-right"> 
+		<a href="{% url "remove_item" cart_item.product.id cart_item.id %}" onclick="return confirm('¿Seguro de quitar este producto?')" class="btn btn-danger">Quitar</a>
+	</td> -->
+</tr>
+{% endfor %}
+
+
+</tbody>
+</table>
 </div> <!-- card.// -->
 </aside> <!-- col.// -->
 
@@ -319,8 +347,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.btn-bunch').forEach(function (btn) {
         btn.addEventListener('click', function (e) {
             e.preventDefault();
-            //const row = btn.closest('tr');
-            const row = btn.closest('.cart-item-card');
+            const row = btn.closest('tr');
             const qtyInput = row.querySelector('input[name="qty_bunch"]');
             const quantity = parseInt(qtyInput.value, 10);
             const stock = parseInt(qtyInput.dataset.stock, 10);
@@ -345,8 +372,7 @@ document.addEventListener('DOMContentLoaded', function () {
             e.preventDefault();
             if (btn.classList.contains('disabled')) return;
 
-            //const row = btn.closest('tr');
-            const row = btn.closest('.cart-item-card');
+            const row = btn.closest('tr');
             const qtyInput = row.querySelector('input[name="qty_bunch"]');
             const current = parseInt(qtyInput.value, 10) || 0;
             const stock   = parseInt(qtyInput.dataset.stock, 10);

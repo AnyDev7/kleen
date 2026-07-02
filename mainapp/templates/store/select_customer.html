@@ -25,17 +25,17 @@
                         <div class="form-row">
                             
                             <!-- customers es un QuerySet (instancias) de Customer-->
-                            <select name="customer-select" class="form-control" required>
+                            <select name="customer_select" class="form-control" required>
                                 <option value="" disabled selected>Elija una opción</option> <!--primera opcion deshabilitada, para mensaje-->
                                 <!-- Iteración de clientes-->
                                 {% for customer in customers %}
                                     {% if customer.id == 1 %}
                                         <option name="customer" value="{{customer.id}}" selected>
-                                            {{customer.name|capfirst}} | {{customer.id}}
+                                            {{customer.id}}. {{customer.name|capfirst}}
                                         </option>
                                     {% else %}
                                             <option name="customer" value="{{customer.id}}" >
-                                            {{customer.name|capfirst}} | {{customer.id}}
+                                            {{customer.id}}. {{customer.name|capfirst}}
                                         </option>
                                     {% endif %}
                                 {% endfor %}
