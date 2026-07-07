@@ -45,38 +45,40 @@ def new_customer(request, total="", flag=0):  #flag=1 viene de select_customer.h
 
     if request.method == 'POST':
         form = New_CustomerForm(request.POST)
-        if form.is_valid():
-            name = form.cleaned_data['name']
-            address_line_1 = form.cleaned_data['address_line_1']
-            address_line_2 = form.cleaned_data['address_line_2']
-            city = form.cleaned_data['city']
-            phone = form.cleaned_data['phone']
-            email = form.cleaned_data['email']            
-            customer = Customer.objects.create(name=name, address_line_1=address_line_1, address_line_2=address_line_2, email=email)            
-            customer.user = user
-            customer.city = city
-            # obtener el valor seleccionado del select: key & value con request.POST
-            customer.state = request.POST['inputState'] # hace referencia la 'key' al 'name' del select o input del POST
-            customer.phone = phone
-            customer.save()
-            
-            messages.success(request, "Se creo nuevo cliente.")
-#PENDIENTE 25 Marzo 2026, ver si es necesario
-            customers = Customer.objects.all().order_by('name')
-            context = { 
-            'total': total, 
-            'customers': customers,
-            }
-#PENDIENTE
+        try:
+            if form.is_valid():
+                name = form.cleaned_data['name']
+                address_line_1 = form.cleaned_data['address_line_1']
+                address_line_2 = form.cleaned_data['address_line_2']
+                city = form.cleaned_data['city']
+                phone = form.cleaned_data['phone']
+                email = form.cleaned_data['email']            
+                customer = Customer.objects.create(name=name, address_line_1=address_line_1, address_line_2=address_line_2, email=email)
+                customer.user = user
+                customer.city = city
+                # obtener el valor seleccionado del select: key & value con request.POST
+                customer.state = request.POST['inputState'] # hace referencia la 'key' al 'name' del select o input del POST
+                customer.phone = phone
+                customer.save()
+                
+                messages.success(request, "Se creo nuevo cliente.")
+            #PENDIENTE 25 Marzo 2026, ver si es necesario
+                customers = Customer.objects.all().order_by('name')
+                context = { 
+                'total': total, 
+                'customers': customers,
+                }
+            #PENDIENTE
 
-#Revisar método redirect para regresar a la página que lo llamó
-            return render(request, 'store/select_customer.html', context) #OK
-            #redirect('select_customer', total=total, flag=flag) # llama a vista
+            #Revisar método redirect para regresar a la página que lo llamó
+                return render(request, 'store/select_customer.html', context) #OK
+        except Exception as e:
+            #print("Error capturado:", e)
+            messages.warning(request, f"No se pudo crear el cliente, en new_customer: {e}")
+            return redirect('logout')
 
-        #else:            
-        #    return HttpResponse(form.errors)
     else:
-        # Solo limpia la Form si es la primera vez que se accesa, si o muestra errores y contenido de form
+        # limpia la Form si es la primera vez que se accesa, o muestra errores y contenido de form
         form = New_CustomerForm()      
         context = {
             'form': form,
@@ -205,8 +207,6 @@ def login(request):
                                 item.user = user
                                 item.save()
                     #auth.login(request, user) # Agregado por mi Sí funciona
-                    #messages.success(request, "Bienvenido a pagar tu orden, pero primero tus datos")
-                    #return redirect('checkout') # Agregado por mi Sí funciona
             except:
                 pass
             auth.login(request, user)
@@ -222,7 +222,7 @@ def login(request):
                         messages.success(request, "Para pagar tu orden, revisa los datos")
                     return redirect(next_page)
             except:
-                return redirect('dashboard')
+                return redirect('ecart')
         else:
             messages.error(request, "Correo + contraseña no validos")
             return redirect('login')
@@ -268,8 +268,9 @@ def dashboard(request):
             'userprofile': userprofile,
             'address': address,
         }
-    except:
-        None
+    except Exception as e:
+            messages.warning(request, f"Error capturado, en dashboard: {e}")
+            return redirect('home')
     return render(request, 'account/dashboard.html', context)
 
 
@@ -388,15 +389,33 @@ def my_orders(request):
         orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True)
         # Unir o sumar queryset's : https://stackoverflow.com/questions/29587382/how-to-add-an-model-instance-to-a-django-queryset
         orderproducts = OrderProduct.objects.filter(user__id=request.user.id, ordered=True)
-        #payment = Payment.objects.get(payment_id=order.payment_id)
         context = {
             'orders': orders,
             'orderproducts': orderproducts,
         }
-    except:
-        None
+    except Exception as e:
+            #print("Error capturado:", e)
+            messages.warning(request, f"No hay ordenes, en my_orders: {e}")
+            return redirect('home')
     #if request.GET.get('ticket') == '1':
     #        return render(request, 'order/ticket_order.html', context)
+    return render(request, "account/my_orders.html", context)
+
+#pending payment orders
+@login_required(login_url='login')
+def pending_orders(request):
+    try:
+        # Sí funciona: orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True, paid_at=None)
+        orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True, status="No Pagada")
+        orderproducts = OrderProduct.objects.filter(user__id=request.user.id, ordered=True)
+        context = {
+            'orders': orders,
+            'orderproducts': orderproducts,
+        }
+    except Exception as e:
+            #print("Error capturado:", e)
+            messages.warning(request, f"No hay ordenes, en my_orders: {e}")
+            return redirect('home')
     return render(request, "account/my_orders.html", context)
 
 
@@ -444,12 +463,15 @@ def addresses(request):
                 address.user = request.user
                 address.save()
 
-            except:
-                print("No se pudo crear el registro de la tabla DIRECCION")
+            except Exception as e:
+                #print("Error capturado:", e)
+                messages.warning(request, f"No se creo la dirección, en addresses: {e}")
+                return redirect('dashboard')
         url = request.META.get('HTTP_REFERER') # Regresa a url anterior
         return redirect(url)
     else:
 
+        #Revisar lógica, si se valida except se envía un objeto vacío al context
         try:
             addresses = Address.objects.filter(user__id=request.user.id)
         except:
@@ -494,8 +516,10 @@ def edit_address(request, address_id):
                 address.state = state
                 address.save()
                 messages.success(request, 'Datos de dirección se actualizaron.')
-            except:
-                print("No se pudo actualizar el registro de la tabla DIRECCION")
+            except Exception as e:
+                #print("Error capturado:", e)
+                messages.warning(request, f"No se actualizó la dirección, en edit_address: {e}")
+                return redirect('dashboard')
             
             if address.default == True:
                 try:
@@ -504,8 +528,10 @@ def edit_address(request, address_id):
                         if item.id != address.id:
                             item.default = False
                             item.save()
-                except Address.DoesNotExist:
-                    None
+                except Exception as e:
+                    #print("Error capturado:", e)
+                    messages.warning(request, f"Dirección default no se actualizó, en edit_address: {e}")
+                    return redirect('dashboard')
         
         return redirect(addresses)
     else:
@@ -550,8 +576,10 @@ def add_address(request):
                 address.user = request.user
                 address.save()
                 messages.success(request, 'Se agrego la dirección.')
-            except:
-                print("No se pudo crear el registro de la tabla otra DIRECCION")
+            except Exception as e:
+                #print("Error capturado:", e)
+                messages.warning(request, f"No se agregó la dirección, en add_address: {e}")
+                return redirect('dashboard')
 
             if address.default == True:
                 try:
@@ -560,8 +588,10 @@ def add_address(request):
                         if item.id != address.id:
                             item.default = False
                             item.save()
-                except Address.DoesNotExist:
-                    None
+                except Exception as e:
+                    #print("Error capturado:", e)
+                    messages.warning(request, f"Dirección default no se actualizó, en add_address: {e}")
+                    return redirect('dashboard')
                     
         return redirect(addresses)
     else:
