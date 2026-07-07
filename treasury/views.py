@@ -13,23 +13,26 @@ from ecart.views import create_menu
 
 def check_cr(request):
     try:
-        # Verificar si hay corte no cerrado, devuelve el último corte sin cerrar
-        cr_opened = CashCut.objects.last()
-        #last_cashcut = CashCut.objects.last()
-        #last_cashcut1 = CashCut.objects.order_by('-start_at').first()
-        #last_cashcut2 = CashCut.objects.latest('start_at')
+        cropened_count = 0
+        # Verificar si hay cortes Iniciados
+        # Obtener todos los cortes iniciados, incluyendo el del usuario actual
+        # antes una sola caja, un solo usuario: cr_opened = CashCut.objects.last()
+            #last_cashcut = CashCut.objects.last()
+            #last_cashcut1 = CashCut.objects.order_by('-start_at').first()
+            #last_cashcut2 = CashCut.objects.latest('start_at')
+        cr_opened = CashCut.objects.filter(user_id=request.user.id, status="Iniciado").last()
         if not cr_opened:
             #No hay registros, BD nueva
-            return False, False
+            return False, False, False
         if cr_opened.status == "Cerrado":
             #Corte anterior cerrado
-            return cr_opened, "Cerrado"
+            return cr_opened, cr_opened.status, cr_opened.cashregister_id
         elif cr_opened.status == "Iniciado":
             #El corte anterior NO estaba cerrado
-            return cr_opened, "Iniciado"
+            return cr_opened, cr_opened.status, cr_opened.cashregister_id
     except Exception as e:
-            print("Error capturado:", e)
-            redirect ('home')
+            messages.warning(request, f"Error capturado, en check_cr: {e}")
+            redirect ('logout')
 
 
 def initial_cr(request):
@@ -48,6 +51,8 @@ def initial_cr(request):
             #print(f"Saldo inicial :{cr_new.initial_balance}")
             cr_new.cashregister = cr_selected
             cr_new.save()
+            cr_selected.status = "Ocupada"
+            cr_selected.save()
             #print(f"Se creo nuevo corte:{cr_new}")
         except Exception as e:
             #print("Error capturado:", e)
@@ -77,8 +82,12 @@ def cash_cut(request, cut_id=None):
             #Obtener pagos realizados en el periodo de ese corte
             payments_cr = Payment.objects.filter(created_at__gte=last_cr.start_at, user_id = request.user.id)
             #print(f"Corte abierto: {last_cr}, pagos dentro del corte: {payments_cr}")
+            
             #Sumar saldos en caja
             if payments_cr and last_cr and last_cr.status == "Iniciado":
+                cashregister = CashRegister.objects.get(id=last_cr.cashregister_id)
+                #cashregister = get_object_or_404(CashCut, id=last_cr.cashregister_id)
+                #Procesar pagos, entradas y salidas.
                 for pay in payments_cr:
                     if pay.status == "Completado":
                         total_balance += pay.amount_paid
@@ -110,6 +119,8 @@ def cash_cut(request, cut_id=None):
                 last_cr.total_cash = last_cr.initial_balance + last_cr.cash_balance
                 last_cr.status = "Cerrado"
                 last_cr.save()
+                cashregister.status = "Activa"
+                cashregister.save()
                 print(f'Estatus del corte: {last_cr.status}')
                 messages.info(request, f'Estatus del corte: {last_cr.status}')
             else:

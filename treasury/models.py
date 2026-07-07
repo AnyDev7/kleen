@@ -27,6 +27,7 @@ class CashRegister(models.Model):
     STATUS = (
         ('Activa', 'Activa'),  #Cual es el valor y cúal el key?
         ('Inactiva', 'Inactiva'), #Cual es el valor y cúal el key?
+        ('Ocupada', 'Ocupada'), #Cual es el valor y cúal el key?
     )
     name = models.CharField("Caja", max_length=20, default="")
     status = models.CharField("Estatus", max_length=20, choices=STATUS, default="Activa")
