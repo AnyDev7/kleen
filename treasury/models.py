@@ -88,8 +88,8 @@ class IncomeOutcome(models.Model):
     cashcut = models.ForeignKey(CashCut, verbose_name='Corte', on_delete=models.SET_NULL, null=True)
     income = models.BooleanField('Entrada', default=False)
     outcome = models.BooleanField('Salida', default=False)
-    amount = models.FloatField("Importe")
-    concept = models.CharField("Concepto", max_length=50)
+    amount = models.FloatField('Importe')
+    concept = models.CharField('Concepto', max_length=50)
     
     created_at = models.DateTimeField("Creado", auto_now_add=True)
     updated_at = models.DateTimeField("Actualizado", auto_now=True)
@@ -98,3 +98,22 @@ class IncomeOutcome(models.Model):
         verbose_name = 'Entrada y Salida'
         verbose_name_plural = 'Entradas y Salidas'
     
+
+class CashMovement(models.Model):
+    MOVEMENT_TYPES = (
+        ('IN', 'Entrada'),
+        ('OUT', 'Salida'),
+    )
+    cash_cut = models.ForeignKey(CashCut, verbose_name='Corte', on_delete=models.CASCADE, related_name='movements')
+    user = models.ForeignKey(Account, verbose_name='Usuario', on_delete=models.SET_NULL, null=True)
+    movement_type = models.CharField(max_length=3, verbose_name='Movimiento', choices=MOVEMENT_TYPES)
+    amount = models.FloatField(verbose_name='Monto')
+    concept = models.CharField(max_length=200, verbose_name='Concepto')
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name='Creado el')
+
+    def __str__(self):
+        return f'{self.movement_type} ${self.amount} - {self.concept}'
+    
+    class Meta:
+        verbose_name = 'Entrada y Salida'
+        verbose_name_plural = 'Entradas y Salidas'

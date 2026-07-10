@@ -6,143 +6,153 @@
 <div class="container">
 <div class="row">
     {% include "mainapp/includes/dashboard_sidebar.html" %}
-    <div class="container" style="margin: 0 auto;width: 70%;padding: 50px;background: #f1f1f1;margin-top: 0px;margin-bottom: 50px;">
-        <div class="row invoice row-printable">
-            
-            <div class="col-md-12">
-                <!-- col-lg-12 start here -->
-                <div class="panel panel-default plain" id="dash_0">
-                    <!-- Start .panel -->
-                    <div class="panel-body p30">
-                        <div class="row">
-                            <!-- Start .row -->
-                            <div class="col-lg-6">
-                                <!-- col-lg-6 start here -->
-                                <div class="invoice-logo"><img src=" {% static COMPANY_LOGO %}" alt="COMPANY_LOGO" style="max-height: 140px;"></div>
-                            </div>
-                            <!-- col-lg-6 end here -->
-                            <div class="col-lg-6">
-                                <!-- col-lg-6 start here -->
-                                <div class="invoice-from">
-                                    <ul class="list-unstyled text-right">
-                                        <li><strong>Datos de tu compra:</strong></li>
-                                        <li>{{user.full_name}}</li>
-                                        <li>{{user.email}}</li>
-                                        <li>{{user.city}}, {{user.state}}</li>
-                                        <li>{{user.country}}</li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <!-- col-lg-6 end here -->
-                            <div class="col-lg-12">
-                                <!-- col-lg-12 start here -->
-                                <div class="invoice-details mt25">
-                                    <div class="well">
-                                        <ul class="list-unstyled mb0">
-                                            <li><strong>Orden: </strong> {{order.number}}</li>
-                                            <li><strong>Pago ID: </strong> {{order.payment}}</li>
-                                            <li><strong>Fecha: </strong> {{order.created_at}}</li>
-                                            <li><strong>Estatus:  <span  {% if order.status == 'Pagada' %} style="color: #17B169;"
-                                                {% elif order.status == 'Recibida'  %} style="color: #007FFF;" 
-                                                {% elif order.status == 'Completada'  %} style="color: #3457D5;"
-                                                {% elif order.status == 'Enviada'  %} style="color: #4CBB17;"
-                                                {% elif order.status == 'Cancelada'  %} style="color: #E52B50;"
-                                                {% elif order.status == 'Nueva' or 'New' %} style="color: #FEBE10;"
-                                                {% endif %}> {{order.status}} </span></strong></li>
-                                        </ul>
-                                    </div>
-                                    {% if order.pickup %}
-                                    <div class="card-body">
-                                        <div class="form-row">
-                                            <div class="form-group col-md-6 text-left">
-                                                <b><label for="">Instrucciones para retiro:</label></b> <br>
-                                                <span> <small>"{{order.pickup_instructions}}" </small> </span>
-                                            </div>
-                                            <div class="form-group col-md-6 text-right">
-                                                <b><label for="">Proveedor logístico:</label></b> <br>
-                                                <span> "{{order.logistic_supp}}" </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {% elif order.shipment %}
-                                    <div class="card-body">
-                                        <div class="form-row">
-                                            <div class="form-group col-md-6 text-left">
-                                                <b><label for="">Se envia por paquetería:</label></b> <br>
-                                                <span> <small> "{{order.note}}" </small></span>
-                                            </div>
-                                            <div class="form-group col-md-6 text-right">
-                                                <b><label for="">Proveedor logístico:</label></b> <br>
-                                                <span> {{order.logistic_supp}} </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            
-                                <div class="invoice-items">
-                                    <div class="table-responsive" style="overflow: hidden; outline: none;" tabindex="0">
-                                        <table class="table table-bordered">
-                                            <thead>
-                                                <tr>
-                                                    <th class="per70 text-center">Producto</th>
-                                                    <th class="per5 text-center">Cant.</th>
-                                                    <th class="per25 text-center">Precio</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {% for item in ordered_products %}
-                                                <tr>
-                                                    <td>{{item.product.name}}
-                                                        <p class="text-muted small">
-                                                            {% if item.variations.all %}
-                                                                {% for var in item.variations.all %}
-                                                                    <small>{{var.variation | capfirst}}: {{var.value | capfirst}} </small>
-                                                                {% endfor %}
-                                                            {% endif %}
-                                                        </p>
-                                                    </td>
-                                                    <td class="text-center">{{item.quantity}}</td>
-                                                    <td class="text-center">${{item.price|floatformat:"2g"}}</td>
-                                                </tr>
-                                                {% endfor %}
-                                            </tbody>
-                                            <tfoot>
-                                                <tr>
-                                                    <th colspan="2" class="text-right">Total producto:</th>
-                                                    <th class="text-center">${{order.sub_total|floatformat:"2g"}}</th>
-                                                </tr>
-                                                <tr>
-                                                    <th colspan="2" class="text-right">Impuestos:</th>
-                                                    <th class="text-center">${{order.tax|floatformat:"2g"}}</th>
-                                                </tr>
-                                                <tr>
-                                                    <th colspan="2" class="text-right">Envío:</th>
-                                                    <th class="text-center">${{order.ship_cost|floatformat:"2g"}}</th>
-                                                </tr>
-                                                <tr>
-                                                    <th colspan="2" class="text-right">Total:</th>
-                                                    <th class="text-center">${{order.total|floatformat:"2g"}}</th>
-                                                </tr>
-                                            </tfoot>
-                                        </table>
-                                    </div>
-                                </div>
-                                <div class="invoice-footer mt25">
-                                    <p class="text-center"> <a href="#" class="btn btn-outline-primary"> Rastrear envío </a></p>
-                                </div>
-                            </div>
-                            <!-- col-lg-12 end here -->
+<div class="container" style="margin: 0 auto;width: 70%;padding: 3px;background: #f1f1f1;margin-top: 0px;margin-bottom: 50px;">
+<div class="container" style="margin: 0 auto;width: 70%;padding: 50px;background: #e7dcdc;margin-top: 50px;margin-bottom: 50px;">
+    <div class="row invoice row-printable">
+        <div class="col-md-12">
+            <!-- col-lg-12 start here -->
+            <div class="panel panel-default plain" id="dash_0">
+                <!-- Start .panel -->
+                <div class="panel-body p30">
+                    <div class="row">
+                        <!-- Start .row -->
+                        <div class="col-lg-5">
+                            <!-- col-lg-6 start here -->
+                            <div class="invoice-logo"><img src=" {% static COMPANY_LOGO %}" alt="COMPANY_LOGO" style="max-height: 140px;"></div>
                         </div>
-                        <!-- End .row -->
+                        <!-- col-lg-6 end here -->
+                        <div class="col-lg-7">
+                            <!-- col-lg-6 start here -->
+                            <div class="invoice-from">
+                                <ul class="list-unstyled text-right mb-0">
+                                    <li><strong>Datos del corte</strong></li>
+                                    <li><b class="text mb-0">Usuario:</b> {{user.full_name}}</li>
+                                    <li><b  class="text mb-0">Caja:</b> {{cashcut.cashregister_id}}</li>
+                                    <li><small class="text mb-0">fecha:</small></li>
+                                    <li><small class="text mb-0"><b>Inicio:</b> {{cashcut.start_at}}</small></li>
+                                    {% if cashcut.status == 'Cerrado'  %} <li><small class="text mb-0"><b>Finaliza:</b> {{cashcut.end_at}}</small></li>{% endif %}
+                                    {% if cashcut.status == 'Iniciado'  %} <li><small class="text mb-0"><b>Estatus:</b> {{cashcut.status}}</small></li>{% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                        <!-- col-lg-6 end here -->
+                        
+                        <div class="col-lg-12">
+                            <hr>
+                            <!-- col-lg-12 start here -->
+                            <div class="invoice-details mt25">
+                                <div class="well">
+                                    
+                                </div>
+                                <div class="card-body mb-0">
+                                    <div class="form-row mb-0">
+                                        <div class="form-group col-md-6 text-left mb-0">
+                                            <b><label for="">Fondo inicial caja:</label></b>
+                                        </div>
+                                        <div class="form-group col-md-6 text-right mb-0">
+                                            <span> ${{cashcut.initial_balance|floatformat:"2g"}} </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6 text-left mb-0">
+                                            <b><label for="">INGRESOS:</label></b>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6 text-left mb-0">
+                                            <label for="">+ Efectivo:</label>
+                                        </div>
+                                        <div class="form-group col-md-6 text-right mb-0">
+                                            <span> + ${{cashcut.cash_balance|floatformat:"2g"}} </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6 text-left mb-0">
+                                            <label for="">+ Transferencia:</label>
+                                        </div>
+                                        <div class="form-group col-md-6 text-right mb-0">
+                                            <span> + ${{cashcut.transfer_balance|floatformat:"2g"}} </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6 text-left mb-0">
+                                            <label for="">+ Paypal/TC/TD:</label>
+                                        </div>
+                                        <div class="form-group col-md-6 text-right mb-0">
+                                            <span> + ${{cashcut.card_balance|floatformat:"2g"}} </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6 text-left mb-0">
+                                            <label for="">+ Entradas de caja:</label>
+                                        </div>
+                                        <div class="form-group col-md-6 text-right mb-0">
+                                            <span> + ${{movements_in|floatformat:"2g"}} </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6 text-left mb-0">
+                                            <b><label for="">EGRESOS:</label></b>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6 text-left mb-0">
+                                            <label for="">- Salidas de caja:</label>
+                                        </div>
+                                        <div class="form-group col-md-6 text-right mb-0">
+                                            <span> - ${{cashcut.outcomes|floatformat:"2g"}} </span>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6 text-left mb-0">
+                                            <b><label for="">Saldo total en caja:</label></b>
+                                        </div>
+                                        <div class="form-group col-md-6 text-right mb-0">
+                                            <span> ${{cashcut.final_balance|floatformat:"2g"}} </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% if cashcut.incomes > 0 %}
+                                <div class="card-body">
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6 text-left mb-0">
+                                            <b><label for="">Ventas del día:</label></b> <br>
+                                            <span> ${{cashcut.sales|floatformat:"2g"}} </span>
+                                        </div>
+                                        <div class="form-group col-md-6 text-right mb-0">
+                                            <b><label for="">Cobranza:</label></b> <br>
+                                            <span> ${{cashcut.collect_balance|floatformat:"2g"}} </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6 text-left mb-0">
+                                            <b><label for="">Total ingresos:</label></b> <br>
+                                            <span> ${{cashcut.incomes|floatformat:"2g"}} </span>
+                                        </div>
+                                        <div class="form-group col-md-6 text-right mb-0">
+                                            <b><label for="">Saldo efectivo:</label></b> <br>
+                                            <span> ${{cashcut.cash_balance|floatformat:"2g"}} </span>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                           
+                            <div class="text-center">
+                                <a href="{% url 'my_cashcuts' %}" class="btn btn-primary">Regresar</a>
+                            </div>
+                        </div>
+                        <!-- col-lg-12 end here -->
                     </div>
+                    <!-- End .row -->
                 </div>
-                <!-- End .panel -->
             </div>
-            <!-- col-lg-12 end here -->
+            <!-- End .panel -->
         </div>
-    </div>
-</div> <!-- row.// -->
-</div> <!-- container-->
+        <!-- col-lg-12 end here -->
+    </div> <!-- row printable-->
+</div> <!--Conteiner 2-->
+</div> <!--Conteiner 1-->
 </section>
 {% endblock content %}

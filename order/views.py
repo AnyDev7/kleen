@@ -20,9 +20,9 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_protect #CHECAR 15ABR2026
 
 
-#Función para pagar ordenes cobradas desde "Mis Ordenes"
+#Función para pagar ordenes cobradas desde "Mis Ordenes"  / NO PROGRAMADA
 # Sustituye payment_deferred y manda a pagar a payment_kleen.html
-# Por programar 20Jun2026
+# Por programar 20Jun2026 / NO PROGRAMADA: 7Jul 2026
 def collect_pay(request):
     order = get_object_or_404(Order,user=current_user, number=order_number, is_ordered=False)
     context = {
@@ -37,32 +37,22 @@ def collect_pay(request):
     }
     return render(request, 'order/payment_kleen.html', context)
 
-#Pago directo desde consulta my_orders en account.views > my _orders.html
-#mejor opción enviar datos a payment_kleen.html > payment_cash() > order_complete() > order_complete.html
+#Función sólo para renderizar payment_kleen.html con los datos de la orden y el pago por liquidar.
+#Pago desde consulta my_orders en account.views > my_orders.html
+# enviar datos a payment_kleen.html > payment_cash() > order_complete() > order_complete.html
 def payment_deferred(request):
     if "pay" in request.POST:
         order_number = request.POST.get("pay")
         #print(f"Order Number: 'order_number', Existe: {order_number}") # OK funciona
         try:
             order = Order.objects.get(number=order_number, is_ordered=True)
-            print(f"Pago ID: 'order.payment_id', Existe: {order.payment_id}") # OK funciona
-            #order.payment_id - payment_id es el indice de campo del foreign key (trae el id)
-            print(f"Pago ID: 'order.payment.id', Existe: {order.payment.id}") # OK funciona
-            #order.payment.id - payment es el campo del foreign key, .id= trae el id
-            
-            #Borrar 
-            # No obtener el pago payment = Payment.objects.get(id=order.payment_id)
-            # payment_exist = Payment.objects.filter(id=order.payment_id).exists()
-            #print(f"Pago: {payment}, Existe:{payment_exist}")
-            #final Borrar
-
+            #print(f"Pago ID: 'order.payment_id', Existe: {order.payment_id}") # OK funciona
+            #order.payment_id - payment_id es el campo del foreign key (contiene el id)
+            #print(f"Pago ID: 'order.payment.id', Existe: {order.payment.id}") # OK funciona
+            #order.payment.id - payment es el modelo del campo del foreign key, .id= trae el id
+ 
             ordered_products = OrderProduct.objects.filter(order_id=order.id).exclude(quantity=0)
-            #order.status = "Recibida"
-            #payment.status = "Iniciado"
-            #payment.collect = True
-            #order.save()
-            #payment.save()
-            #messages.success(request, f'¡Pago exitoso!')
+ 
             context = {
                 'order': order,
                 'cart_items': ordered_products,
@@ -95,26 +85,30 @@ def payment_cash(request, collect):
             payment_method = 'Transferencia'
         elif type_payment == 'paypal':
             payment_method = 'Paypal'
-
-        order_exist = Order.objects.filter(user=request.user, number=order_number).exists()
-        print(f"Orden: {order_number}, Existe:{order_exist}")
+        
+        #agregado 9 jul 2026, pagar ordenes de otros usuarios.
+        # Corregir las query de order sin request.user  if collect == 1:
         try:
-            if collect == 1:
+            if collect == 1: # Pago de Cobranza
                 # obtener orden procesada y no pagada, y el pago pendiente.
-                order = Order.objects.get(user=request.user, number=order_number)
+                # Pagar orden de cualquier usuario 
+                #order = Order.objects.get(user=request.user, number=order_number)
+                #Checar si Payment almacena user, para poner request.user (actual)
+                order = Order.objects.get(number=order_number)
                 payment = Payment.objects.get(id=order.payment_id)
+                payment.user = request.user
                 payment.collect = True
                 payment.status = "Completado"
                 payment.payment_method = payment_method
-                payment.paid_at = timezone.now()
+                payment.paid_at = datetime.now()
                 payment.save()
-            else:
+            else: # Pago de nueva orden
                 # obtener Orden no procesada y no pagada, crear el pago.
                 order = get_object_or_404(Order, user=request.user, is_ordered=False, number=order_number)
                 # store transaction data
                 payment = Payment(
                     user = request.user,
-                    payment_id = payment_id, #request.POST.get('payment_id'), #En el modelo Payment, payment_id no es un indice
+                    payment_id = payment_id, #request.POST.get('payment_id'), #En el modelo Payment, payment_id no es un indice, almacena el id
                     payment_method = payment_method,
                     amount_paid = order.total,  #float(body['payment_amount']), #Order model: order.total
                     status = "Completado",
@@ -122,21 +116,22 @@ def payment_cash(request, collect):
                 payment.save()
                 order.payment = payment  # Foreign_key se asigna el objeto completo al campo ForeignKey
                 order.is_ordered = True
-            if "submit_cash" in request.POST: #Pago con efectivo
+            if "submit_cash" in request.POST: # Si la orden se pagó al momento
                 order.status = "Pagada"
-                order.paid_at = timezone.now() # NO usar datetime.now() - timezone.now() en lugar de datetime.now() porque respeta la configuración de TIME_ZONE y USE_TZ
-                payment.paid_at = timezone.now()
+                order.paid_at = datetime.now() # NO usar datetime.now() - timezone.now() en lugar de datetime.now() porque respeta la configuración de TIME_ZONE y USE_TZ
+                payment.paid_at = datetime.now() # # TIME_ZONE ya está definido, se usa= datetime.now() - Usar timezone.now() en lugar de datetime.now() Si no está configurado TIME_ZONE y USE_TZ
                 payment.save()
                 #print(f"Submit Cash: 'submit_cash', Existe:{request.POST}")
-            elif "submit_deferred" in request.POST: #Pago en efectivo diferido
+            elif "submit_deferred" in request.POST: #Pago de la orden diferido
                 order.status = "No Pagada"
                 order.paid_at = None
+                payment.paid_at = None
                 payment.payment_method = "Por Cobrar"
                 payment.status = "Por Cobrar"
                 payment.save()
-                print(f"Submit Deferred: 'submit_deferred', Existe:{request.POST}")
-                print(f"Payment Status: 'payment.status', Existe:{payment.status}")
-                print(f"Payment Status: 'order.paid_at', Existe:{order.paid_at}")
+                #print(f"Submit Deferred: 'submit_deferred', Existe:{request.POST}")
+                #print(f"Payment Status: 'payment.status', Existe:{payment.status}")
+                #print(f"Payment Status: 'order.paid_at', Existe:{order.paid_at}")
             
             order.save()
             if collect == 0:
@@ -184,7 +179,7 @@ def payment_cash(request, collect):
                 send_email = EmailMessage(mail_subject, mail_message, to=[to_email])
                 send_email.send()
 
-            #Agregado 20Jun 2026 Claude - JMBS
+            #Agregado 20Jun 2026 Claude - JMBS, para imprimir regresa a:
             base_url = reverse('order_complete')
             params = urlencode({
                 'order_number': order.number,
@@ -196,8 +191,10 @@ def payment_cash(request, collect):
             #Fin agregado 20Jun 2026
 
         except Exception as e:
+            #Error al procesar pagos de ordenes de otro usuario: 
+            #Error: No se registró su orden. En payment_cash Order matching query does not exist.
             print("Error capturado:", e)
-            messages.error(request, f'No se registró su orden. {e}')
+            messages.error(request, f'No se registró su orden. En payment_cash {e}')
             return redirect('ecart')
 
         
@@ -496,39 +493,3 @@ def order_complete(request):
     #    return redirect('dashboard')
 
     
-
-"""
-#ManytoMany https://docs.djangoproject.com/en/5.0/topics/db/examples/many_to_many/
-# MODELS
-
-class Publication(models.Model):
-    title = models.CharField(max_length=30)
-
-    class Meta:
-        ordering = ["title"]
-
-    def __str__(self):
-        return self.title
-
-
-class Article(models.Model):
-    headline = models.CharField(max_length=100)
-    publications = models.ManyToManyField(Publication)
-
-    class Meta:
-        ordering = ["headline"]
-
-    def __str__(self):
-        return self.headline
-
-# VIEW
-# crear dirección
-p1 = Publication(title="The Python Journal")
-p1.save()
-# crear usuario
-a1 = Article(headline="Django lets you build web apps easily")
-a1.save() # Si usuario ya existe, se omite
-# Asociar dir a user / agregar una direccion a usuario
-a1.publications.add(p1)
-"""
-

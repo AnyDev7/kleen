@@ -35,7 +35,7 @@
     <div class="row align-items-center">
         <div class="col-lg-2 col-md-3 col-6">
             <!-- Revisar el flujo de procesos, permite accesar con otro usuario: <a href=" {% url 'create_menu' 1 %} " class="brand-wrap">-->
-            <a href="" class="brand-wrap">
+            <a href=" {% url 'create_menu' 0 %} " class="brand-wrap">
                 <img class="logo" src=" {% static "./images/lav-reforma-logo-azul-rectan.png" %} ">
             </a> <!-- brand-wrap.// -->
         </div>
@@ -48,7 +48,7 @@
                 
                     <div class="dropdown-menu">
                         {% comment "" %}  Sí funciona: <a class="dropdown-item" href="{% url "prod_by_cat" subcat.slug %}">{{subcat.name}} {% endcomment %}
-                            <a class="dropdown-item" href=" {% url "store" %} ">Todos los productos</a>
+                            <a class="dropdown-item" href=" {% url 'store' %} ">Todos los productos</a>
                             <div class="dropdown-divider"></div>
                         {% for subcat in subcat_links %}
                             <a class="dropdown-item" href="{{subcat.get_url}}">{{subcat.name}} </a>

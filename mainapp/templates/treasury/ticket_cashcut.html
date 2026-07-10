@@ -43,13 +43,14 @@
     <div class="row"><span>Ingresos efectivo:</span><span>+${{ last_cr.cash_balance|floatformat:"2g" }}</span></div>
     <div class="row"><span>Ingresos transferencia:</span><span>+${{ last_cr.transfer_balance|floatformat:"2g" }}</span></div>
     <div class="row"><span>Ingresos Paypal/TC/TD:</span><span>+${{ last_cr.card_balance|floatformat:"2g" }}</span></div>
+    <div class="row"><span>Entradas de caja:</span><span>${{ movements_in|floatformat:"2g" }}</span></div>
     <div class="row"><span>Salidas de caja:</span><span>-${{ last_cr.outcomes|floatformat:"2g" }}</span></div>
     <hr>
     <div class="row bold"><span>Saldo total en caja:</span><span>${{ last_cr.final_balance|floatformat:"2g" }}</span></div>
 
     {% if last_cr.incomes > 0 %}
     <hr>
-    <div class="row"><span>Ingresos del día:</span><span>${{ last_cr.sales|floatformat:"2g" }}</span></div>
+    <div class="row"><span>Entradas de caja:</span><span>${{ movements_in|floatformat:"2g" }}</span></div>    
     <div class="row"><span>Cobranza:</span><span>${{ last_cr.collect_balance|floatformat:"2g" }}</span></div>
     <div class="row bold"><span>Total ingresos:</span><span>${{ last_cr.incomes|floatformat:"2g" }}</span></div>
     <div class="row bold"><span>Saldo efectivo:</span><span>${{ total_cash|floatformat:"2g" }}</span></div>

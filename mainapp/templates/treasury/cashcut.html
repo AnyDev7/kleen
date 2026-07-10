@@ -66,7 +66,12 @@
                                     </div>
                                     <div class="form-row">
                                         <div class="form-group col-md-6 text-left mb-0">
-                                            <b><label for="">Ingresos efectivo:</label></b>
+                                            <b><label for="">INGRESOS:</label></b>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6 text-left mb-0">
+                                            <label for="">+ Efectivo:</label>
                                         </div>
                                         <div class="form-group col-md-6 text-right mb-0">
                                             <span> + ${{last_cr.cash_balance|floatformat:"2g"}} </span>
@@ -74,7 +79,7 @@
                                     </div>
                                     <div class="form-row">
                                         <div class="form-group col-md-6 text-left mb-0">
-                                            <b><label for="">Ingresos transferencia:</label></b>
+                                            <label for="">+ Transferencia:</label>
                                         </div>
                                         <div class="form-group col-md-6 text-right mb-0">
                                             <span> + ${{last_cr.transfer_balance|floatformat:"2g"}} </span>
@@ -82,7 +87,7 @@
                                     </div>
                                     <div class="form-row">
                                         <div class="form-group col-md-6 text-left mb-0">
-                                            <b><label for="">Ingresos Paypal/TC/TD:</label></b>
+                                            <label for="">+ Paypal/TC/TD:</label>
                                         </div>
                                         <div class="form-group col-md-6 text-right mb-0">
                                             <span> + ${{last_cr.card_balance|floatformat:"2g"}} </span>
@@ -90,7 +95,20 @@
                                     </div>
                                     <div class="form-row">
                                         <div class="form-group col-md-6 text-left mb-0">
-                                            <b><label for="">Salidas de caja:</label></b>
+                                            <label for="">+ Entradas de caja:</label>
+                                        </div>
+                                        <div class="form-group col-md-6 text-right mb-0">
+                                            <span> + ${{movements_in|floatformat:"2g"}} </span>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6 text-left mb-0">
+                                            <b><label for="">EGRESOS:</label></b>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-md-6 text-left mb-0">
+                                            <label for="">- Salidas de caja:</label>
                                         </div>
                                         <div class="form-group col-md-6 text-right mb-0">
                                             <span> - ${{last_cr.outcomes|floatformat:"2g"}} </span>
@@ -110,7 +128,7 @@
                                 <div class="card-body">
                                     <div class="form-row">
                                         <div class="form-group col-md-6 text-left mb-0">
-                                            <b><label for="">Ingresos del día:</label></b> <br>
+                                            <b><label for="">Ventas del día:</label></b> <br>
                                             <span> ${{last_cr.sales|floatformat:"2g"}} </span>
                                         </div>
                                         <div class="form-group col-md-6 text-right mb-0">
@@ -149,7 +167,7 @@
             <!-- End .panel -->
         </div>
         <!-- col-lg-12 end here -->
-    </div>
-    </div>
+    </div> <!-- row printable-->
+</div> <!--Conteiner-->
 
 {% endblock content %}

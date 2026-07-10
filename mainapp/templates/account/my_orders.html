@@ -52,7 +52,7 @@
                                         {% elif order.status == 'Cancelada'  %} style="color: #E52B50;"
                                         {% elif order.status == 'Nueva' or 'New' %} style="color: #FEBE10;"
                                         {% elif order.status == 'No Pagada' %} style="color: #ee7b1e;"
-                                        {% endif %} ><b>{{order.status}}</b></span> <br>
+                                        {% endif %} ><b>{{order.status}}</b></span> <small> <span style="color: #404444; text-left"> | usuario: {{order.user.full_name}} </span> </small> <br>
                                         <small><span class="price text-muted small">
                                         {% if not orderproducts %}
                                             <var class="price text-muted">Orden no tiene productos</var> 

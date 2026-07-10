@@ -5,13 +5,30 @@ from django.utils.html import format_html
 from django.urls import reverse
 from urllib.parse import urlencode
 
-from .models import CashCut, CashRegister, IncomeOutcome
+from .models import CashCut, CashRegister, CashMovement,IncomeOutcome
 
 
 class IcomesOutcomesInline(admin.TabularInline):
     model = IncomeOutcome
     readonly_fields = ('user', 'cashcut', 'income', 'outcome', 'amount', 'concept', 'created_at')
     extra = 0
+
+
+@admin.register(CashMovement)
+class CashMovementAdmin(admin.ModelAdmin):
+    list_display = ('created_at', 'cash_cut', 'user', 'movement_type', 'amount', 'concept')
+    list_filter = ('movement_type', 'cash_cut')
+    search_fields = ('concept', 'user__username')
+    ordering = ('-created_at',)
+    list_per_page = 20
+
+    readonly_fields = ('cash_cut', 'user', 'movement_type', 'amount', 'concept', 'created_at')
+
+    def has_add_permission(self, request):
+        return False  # no se puede agregar desde admin
+
+    def has_delete_permission(self, request, obj=None):
+        return False  # no se puede eliminar desde admin
 
 
 class CashCutAdmin(admin.ModelAdmin):
