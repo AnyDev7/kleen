@@ -201,7 +201,6 @@ def cash_cut(request, cut_id=None):
     context = {
         'last_cr': last_cr,
         'movements_in': last_cr.incomes - total_balance,
-        'total_cash': last_cr.total_cash,
         'COMPANY_LOGO': COMPANY_LOGO
     }
     if request.GET.get('ticket') == '1': #imprimir el ticket
