@@ -4,7 +4,7 @@ from django.contrib import messages
 from django.urls import reverse
 from urllib.parse import urlencode
 from django.utils import timezone
-from datetime import datetime
+from datetime import datetime, date
 
 from ecart.models import CartItem
 from .forms import OrderForm
@@ -424,11 +424,12 @@ def place_order(request, delivery, order_note, customer_id=1, address_id=None, t
             data.save()
 
             # Generate order number
-            yr = int(datetime.date.today().strftime('%Y'))
-            dt = int(datetime.date.today().strftime('%d'))
-            mt = int(datetime.date.today().strftime('%m'))
+            yr = int(date.today().strftime('%Y'))
+            mt = int(date.today().strftime('%m'))
+            dt = int(date.today().strftime('%d'))
             d = datetime.date(yr, mt, dt)
             current_date = d.strftime('%Y%m%d') #20240611
+            # 15Julio 2026 Probar esta: current_date = date.today().strftime('%Y%m%d') #20240611
             
             # Rellenar de ceros 5 espacios
             # "42".zfill(5) >>> '00042'
