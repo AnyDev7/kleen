@@ -427,8 +427,14 @@ def place_order(request, delivery, order_note, customer_id=1, address_id=None, t
             yr = int(date.today().strftime('%Y'))
             mt = int(date.today().strftime('%m'))
             dt = int(date.today().strftime('%d'))
-            d = datetime.date(yr, mt, dt)
-            current_date = d.strftime('%Y%m%d') #20240611
+            #Se cambió 15Julio 2026
+            #yr = int(datetime.today().strftime('%Y'))
+            #mt = int(datetime.today().strftime('%m'))
+            #dt = int(datetime.today().strftime('%d'))
+            #d = datetime.date(yr, mt, dt)
+
+            current_date = date.today().strftime('%Y%m%d') #20240611
+            #current_date = d.strftime('%Y%m%d') #20240611
             # 15Julio 2026 Probar esta: current_date = date.today().strftime('%Y%m%d') #20240611
             
             # Rellenar de ceros 5 espacios
