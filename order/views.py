@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.urls import reverse
 from urllib.parse import urlencode
 from django.utils import timezone
+from datetime import datetime
 
 from ecart.models import CartItem
 from .forms import OrderForm
@@ -12,7 +13,6 @@ from store.models import Product
 from account.models import Address
 from kart.settings import COMPANY, COMPANY_STREET, COMPANY_CITY, COMPANY_STATE, COMPANY_ZIP, COMPANY_COUNTRY, COMPANY_PHONE, COMPANY_LOGO
 
-import datetime
 from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from django.http import JsonResponse
@@ -102,6 +102,7 @@ def payment_cash(request, collect):
                 payment.payment_method = payment_method
                 payment.paid_at = datetime.now()
                 payment.save()
+                order.paid_at = datetime.now()
             else: # Pago de nueva orden
                 # obtener Orden no procesada y no pagada, crear el pago.
                 order = get_object_or_404(Order, user=request.user, is_ordered=False, number=order_number)
