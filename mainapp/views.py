@@ -59,6 +59,17 @@ def home(request):
         return redirect('home')
     
 
+def initial_menu(request):
+    context = {
+        'COMPANY': COMPANY,
+        'COMPANY_BANN1': COMPANY_BANN1,
+        'COMPANY_BANN2': COMPANY_BANN2,
+        'COMPANY_BANN3': COMPANY_BANN3,
+        'COMPANY_SLOGAN': COMPANY_SLOGAN,
+        'COMPANY_SLOG_SUB1': COMPANY_SLOG_SUB1,
+        'COMPANY_SLOG_SUB2': COMPANY_SLOG_SUB2,
+            }
+    return render(request, 'mainapp/create_menu.html', context) # 'mainapp' subdirectorio en 'templates'
     
     #return render(request, 'mainapp/create_menu.html', context) # 'mainapp' subdirectorio en 'templates'
 

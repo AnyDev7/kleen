@@ -35,7 +35,7 @@
     <div class="row align-items-center">
         <div class="col-lg-2 col-md-3 col-6">
             <!-- Revisar el flujo de procesos, permite accesar con otro usuario: <a href=" {% url 'create_menu' 1 %} " class="brand-wrap">-->
-            <a href=" {% url 'create_menu' 0 %} " class="brand-wrap">
+            <a href=" {% url 'initial_menu' %} " class="brand-wrap">
                 <img class="logo" src=" {% static "./images/lav-reforma-logo-azul-rectan.png" %} ">
             </a> <!-- brand-wrap.// -->
         </div>
@@ -75,10 +75,10 @@
                     <div class="d-flex justify-content-end mb-3 mb-lg-0">
                         {% if user.id is None %}
                         <div class="widget-header">
-                            <small class="title text-muted">¡Bienvenido como invitado!</small>
+                            <small class="title text-muted">¡Accesa con tus credenciales!</small>
                             <div> 
-                                <a href="{% url 'login' %}">Ingresa</a> <span class="dark-transp"> | </span>
-                                <a href="{% url "register" %}"> Crea tu cuenta</a>
+                                <a href="{% url 'login' %}">Ingresa</a> 
+                                <!--<span class="dark-transp"> | </span> <a href="{% url "register" %}"> Crea tu cuenta</a>-->
                             </div>
                         </div>
                         <a href="{% url "ecart" %}" class="widget-header pl-3 ml-3">
