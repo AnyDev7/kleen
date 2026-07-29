@@ -14,23 +14,20 @@ from ecart.views import create_menu
 def check_cr(request):
     try:
         cropened_count = 0
-        # Verificar si hay cortes Iniciados
+        # Verificar si hay cortes Iniciados = Started
         # Obtener los cortes iniciados del usuario actual, seleccionar el último.
             #last_cashcut = CashCut.objects.last()
             #last_cashcut1 = CashCut.objects.order_by('-start_at').first()
             #last_cashcut2 = CashCut.objects.latest('start_at')
-        cr_opened = CashCut.objects.filter(user_id=request.user.id, status="Iniciado").last()
+        cr_opened = CashCut.objects.filter(user_id=request.user.id, status="Started").last()
         if not cr_opened:
             #No hay registros, BD nueva
             return False, False, False
-        if cr_opened.status == "Cerrado" or cr_opened.status == "Iniciado":
-            #Corte anterior cerrado
+        if cr_opened.status == "Started":
+            #Corte anterior iniciado = 'Started'
             return cr_opened, cr_opened.status, cr_opened.cashregister_id
         else:
             return False, False, False
-        #elif cr_opened.status == "Iniciado":
-            #El corte anterior NO estaba cerrado
-        #    return cr_opened, cr_opened.status, cr_opened.cashregister_id
     except Exception as e:
             messages.warning(request, f"Error capturado, en check_cr: {e}")
             redirect ('logout')
@@ -51,7 +48,7 @@ def initial_cr(request):
             #print(f"Saldo inicial :{cr_new.initial_balance}")
             cr_new.cashregister = cr_selected
             cr_new.save()
-            cr_selected.status = "Ocupada"
+            cr_selected.status = "Busy"
             cr_selected.save()
             #print(f"Se creo nuevo corte:{cr_new}")
         except Exception as e:
@@ -74,7 +71,7 @@ def initial_cr(request):
 def cash_movement(request):
     # Buscar el corte activo del usuario actual
     try:
-        active_cut = CashCut.objects.get(user=request.user, status='Iniciado')
+        active_cut = CashCut.objects.get(user=request.user, status='Started')
     except CashCut.DoesNotExist:
         messages.warning(request, 'No hay un corte de caja abierto para registrar movimientos.')
         return redirect('dashboard')
@@ -123,8 +120,8 @@ def cash_cut(request, cut_id=None):
     try:
         if request.GET.get('ticket') != '1':
             #Obtener datos del corte abierto, del usuario actual
-            #Claude 26Jun 2026
-            last_cr = CashCut.objects.filter(user=request.user, status="Iniciado").latest('start_at')
+            #Clde 26Jun 2026
+            last_cr = CashCut.objects.filter(user=request.user, status="Started").latest('start_at')
             #Obtener pagos realizados en el periodo de ese corte, por el usuario actual
             payments_cr = Payment.objects.filter(paid_at__gte=last_cr.start_at, user_id = request.user.id)
             #print(f"Corte abierto: {last_cr}, pagos dentro del corte: {payments_cr}")
@@ -135,16 +132,16 @@ def cash_cut(request, cut_id=None):
             total_movements_out = sum(m.amount for m in movements if m.movement_type == 'OUT')
             
             #Sumar saldos en caja
-            if payments_cr and last_cr and last_cr.status == "Iniciado":
+            if payments_cr and last_cr and last_cr.status == "Started":
                 cashregister = CashRegister.objects.get(id=last_cr.cashregister_id)
                 #cashregister = get_object_or_404(CashCut, id=last_cr.cashregister_id)
                 #Procesar pagos, entradas y salidas.
                 for pay in payments_cr:
-                    if pay.status == "Completado":
+                    if pay.status == "Completed":
                         total_balance += pay.amount_paid
-                        if pay.payment_method == "Efectivo":
+                        if pay.payment_method == "Cash":
                             total_cash += pay.amount_paid
-                        elif pay.payment_method == "Transferencia":
+                        elif pay.payment_method == "Transfer":
                             total_transfer += pay.amount_paid
                         elif pay.payment_method == "Paypal":
                             total_card += pay.amount_paid
@@ -172,15 +169,15 @@ def cash_cut(request, cut_id=None):
                 last_cr.save()
                 last_cr.final_balance = last_cr.initial_balance + last_cr.incomes - last_cr.outcomes
                 last_cr.total_cash = last_cr.initial_balance + last_cr.cash_balance + total_movements_in - total_movements_out
-                last_cr.status = "Cerrado"
+                last_cr.status = "Closed"
                 last_cr.save()
-                cashregister.status = "Activa"
+                cashregister.status = "Active"
                 cashregister.save()
-                #print(f'Estatus del corte: {last_cr.status}')
-                messages.info(request, f'Estatus del corte: {last_cr.status}')
+                #print(f'Estatus del corte: {last_cr.get_status_display()}')
+                messages.info(request, f'Estatus del corte: {last_cr.get_status_display()}')
             else:
-                if last_cr.status == "Cerrado" or not last_cr:
-                    messages.info(request, f"No hay corte abierto para procesar. Saliendo...  Entre para crear nuevo corte.")
+                if not last_cr:
+                    messages.info(request, f"No hay corte abierto para procesar. Ingrese para crear nuevo corte.")
                     return redirect('logout')
                 elif not payments_cr:
                     messages.info(request, f"No hay pagos ni ingresos para procesar.")
@@ -188,7 +185,7 @@ def cash_cut(request, cut_id=None):
                 
                 return redirect('dashboard')
         else:
-            #Claude 26Jun 2026, cargar el corte cut_id, para imprimir el corte
+            #Clde 26Jun 2026, cargar el corte cut_id, para imprimir el corte
             if cut_id:
                 last_cr = get_object_or_404(CashCut, id=cut_id)
             else:
@@ -209,7 +206,6 @@ def cash_cut(request, cut_id=None):
 
 
 def my_cashcuts(request):
-
     try:
         cashcuts = CashCut.objects.order_by('-start_at').filter(user_id = request.user.id)
         # Unir o sumar queryset's : https://stackoverflow.com/questions/29587382/how-to-add-an-model-instance-to-a-django-queryset
@@ -220,7 +216,7 @@ def my_cashcuts(request):
         }
     except Exception as e:
         print("Error capturado:", e)
-        messages.warning(request, f"Error capturado MIS CORTES: {e}")
+        messages.warning(request, f"Error capturado my_cashcuts: {e}")
         return redirect('dashboard')
     return render(request, "treasury/my_cashcuts.html", context)
 

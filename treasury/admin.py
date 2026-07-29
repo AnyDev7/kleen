@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-#Claude code 20Jun 2026
+#Clde code 20Jun 2026
 from django.utils.html import format_html
 from django.urls import reverse
 from urllib.parse import urlencode
@@ -44,7 +44,7 @@ class CashCutAdmin(admin.ModelAdmin):
     fieldsets = ()
     inlines = [IcomesOutcomesInline,]
 
-    #Claude 26Jun 2026
+    #Clde 26Jun 2026
     def print_ticket_link(self, obj):
         try:
             base_url = reverse('cash_cut_detail', args=[obj.id])

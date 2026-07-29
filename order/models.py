@@ -12,6 +12,8 @@ class Customer(models.Model):
     city = models.CharField("Ciudad", max_length=50, blank=True)
     state = models.CharField("Estado", max_length=50, blank=True)
     phone = models.CharField("Telefono", max_length=15, blank=True)
+    zipcode = models.CharField('CP', max_length=10, blank=True)
+    country = models.CharField('Pais', max_length=50, blank=True)
     email = models.EmailField("Correo", max_length=60, blank=True)
     amount_purchases = models.FloatField("Total compras", default=0)
     created_at = models.DateTimeField("Creado", auto_now_add=True)
@@ -28,6 +30,7 @@ class Payment(models.Model):
         ('Paypal', 'Paypal'),
         ('Cash', 'Efectivo'),
         ('Transfer', 'Transferencia'),
+        ('Deferred', 'Por Cobrar'),
     )
 
     STATUS = (
@@ -37,6 +40,8 @@ class Payment(models.Model):
     )
     user = models.ForeignKey(Account, verbose_name='Usuario', on_delete=models.CASCADE)
     payment_id = models.CharField("Pago", max_length=100)
+    # En el modelo Payment — agregar este campo Clde :
+    order = models.ForeignKey('order.Order', on_delete=models.SET_NULL, null=True, blank=True, related_name='payments')
     payment_method = models.CharField("Método de Pago", max_length=25, choices=PAYMENT_METHOD)
     amount_paid = models.FloatField("Importe", max_length=100)
     currency = models.CharField("Moneda", max_length=4, default="MXN")
@@ -64,7 +69,8 @@ class Order(models.Model):
         ('Canceled', 'Cancelada'),
     )
     user = models.ForeignKey(Account, verbose_name='Usuario', on_delete=models.SET_NULL, null=True)
-    payment = models.ForeignKey(Payment, verbose_name='Pago', on_delete=models.SET_NULL, null=True, blank=True)
+    #payment = models.ForeignKey(Payment, verbose_name='Pago', on_delete=models.SET_NULL, null=True, blank=True)
+    payment = models.ForeignKey(Payment, verbose_name='Pago', on_delete=models.SET_NULL, null=True, blank=True, related_name='+')
     customer = models.ForeignKey(Customer, verbose_name='Cliente', on_delete=models.SET_NULL, null=True, blank=True)
     number = models.CharField("Orden", max_length=20)
     first_name = models.CharField("Nombre", max_length=50)
@@ -76,13 +82,13 @@ class Order(models.Model):
     country = models.CharField('Pais', max_length=50)
     state = models.CharField('Estado', max_length=50)
     city = models.CharField('Ciudad', max_length=50)
-    zipcode = models.CharField('CP', max_length=10)
+    zipcode = models.CharField('CP', max_length=10, blank=True)
     note = models.CharField("Notas", max_length=125, blank=True)
     sub_total = models.FloatField("Subtotal", default=0)
     ship_cost = models.FloatField("Envío", default=0)
     tax = models.FloatField("Impuestos")
     total = models.FloatField("Total")
-    status = models.CharField("Estatus", max_length=15, choices=STATUS, default="Nueva")
+    status = models.CharField("Estatus", max_length=15, choices=STATUS, default="New")
     shipment = models.BooleanField("¿Enviar?", default=True)
     pickup = models.BooleanField("¿Retiro?", default=False)
     pickup_instructions = models.CharField('Comentarios para recolección', max_length=200, blank=True)
@@ -115,9 +121,6 @@ class OrderProduct(models.Model):
     payment = models.ForeignKey(Payment, verbose_name='Pago', on_delete=models.SET_NULL, blank=True, null=True)
     user = models.ForeignKey(Account, verbose_name='Usuario', on_delete=models.CASCADE)
     product = models.ForeignKey(Product, verbose_name='Producto', on_delete=models.CASCADE)
-    #varcat = models.ForeignKey(VarCat, verbose_name='Catalogo Variacion', on_delete=models.CASCADE, blank=True)
-    #variation = models.ForeignKey(Variation, verbose_name='Variacion', on_delete=models.CASCADE, blank=True)
-    #value = models.CharField('Diferenciador', max_length=50, blank=True, null=True)   # ???
     variations = models.ManyToManyField(StockVar, verbose_name="Variaciones", blank=True)
     quantity = models.IntegerField('Cantidad')
     price = models.FloatField('Precio')

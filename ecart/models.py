@@ -29,10 +29,10 @@ class CartItem(models.Model):
         verbose_name_plural = 'productos en carritos'
 
     def sub_total(self):
-        if not self.product.has_discount:
-            return self.product.price * self.quantity
-        else:
+        if self.product.has_discount:
             return self.product.low_price * self.quantity
+        else:
+            return self.product.price * self.quantity
         
     def cartitem_price(self):
         if self.product.has_discount:

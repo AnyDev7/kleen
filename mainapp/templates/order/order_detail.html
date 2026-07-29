@@ -42,13 +42,13 @@
                                             <li><strong>Orden: </strong> {{order.number}}</li>
                                             <li><strong>Pago ID: </strong> {{order.payment}}</li>
                                             <li><strong>Fecha: </strong> {{order.created_at}}</li>
-                                            <li><strong>Estatus:  <span  {% if order.status == 'Pagada' %} style="color: #17B169;"
-                                                {% elif order.status == 'Recibida'  %} style="color: #007FFF;" 
-                                                {% elif order.status == 'Completada'  %} style="color: #3457D5;"
-                                                {% elif order.status == 'Enviada'  %} style="color: #4CBB17;"
-                                                {% elif order.status == 'Cancelada'  %} style="color: #E52B50;"
-                                                {% elif order.status == 'Nueva' or 'New' %} style="color: #FEBE10;"
-                                                {% endif %}> {{order.status}} </span></strong></li>
+                                            <li><strong>Estatus:  <span  {% if order.status == 'New' or 'Nueva' %} style="color: #FEBE10;"
+                                                {% elif order.status == 'Paid' %} style="color: #17B169;"
+                                                {% elif order.status == 'Allocated'  %} style="color: #007FFF;" 
+                                                {% elif order.status == 'Sent'  %} style="color: #b017bb;"
+                                                {% elif order.status == 'Finished'  %} style="color: #3457D5;"
+                                                {% elif order.status == 'Canceled'  %} style="color: #E52B50;"
+                                                {% endif %}> {{ order.get_status_display }} {% if order.status == 'New' %} no pagada{% endif %}</span></strong></li>
                                         </ul>
                                     </div>
                                     {% if order.pickup %}

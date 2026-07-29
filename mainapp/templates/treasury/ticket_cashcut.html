@@ -50,10 +50,10 @@
 
     {% if last_cr.incomes > 0 %}
     <hr>
-    <div class="row"><span>Entradas de caja:</span><span>${{ movements_in|floatformat:"2g" }}</span></div>    
+    <div class="row"><span>Ventas del turno:</span><span>${{ last_cr.sales|floatformat:"2g" }}</span></div>    
     <div class="row"><span>Cobranza:</span><span>${{ last_cr.collect_balance|floatformat:"2g" }}</span></div>
     <div class="row bold"><span>Total ingresos:</span><span>${{ last_cr.incomes|floatformat:"2g" }}</span></div>
-    <div class="row bold"><span>Saldo efectivo:</span><span>${{ total_cash|floatformat:"2g" }}</span></div>
+    <div class="row bold"><span>Saldo efectivo:</span><span>${{ last_cr.total_cash|floatformat:"2g" }}</span></div>
     {% endif %}
 
     <div class="center" style="margin-top:3mm;">Corte realizado</div>

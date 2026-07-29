@@ -45,14 +45,14 @@
                                         <small><span class="price text-muted small">| {{order.created_at}}</span></small> 
                                     </td>
                                     <td>
-                                        <span {% if order.status == 'Pagada' %} style="color: #17B169;"
-                                        {% elif order.status == 'Recibida'  %} style="color: #007FFF;" 
-                                        {% elif order.status == 'Completada'  %} style="color: #3457D5;"
-                                        {% elif order.status == 'Enviada'  %} style="color: #4CBB17;"
-                                        {% elif order.status == 'Cancelada'  %} style="color: #E52B50;"
-                                        {% elif order.status == 'Nueva' or 'New' %} style="color: #FEBE10;"
+                                        <span {% if order.status == 'New' %} style="color: #FEBE10;"
+                                        {% elif order.status == 'Paid' %} style="color: #17B169;"
+                                        {% elif order.status == 'Allocated' %} style="color: #007FFF;" 
+                                        {% elif order.status == 'Sent' %} style="color: #b017bb;"
+                                        {% elif order.status == 'Finished' %} style="color: #3457D5;"
+                                        {% elif order.status == 'Canceled' %} style="color: #E52B50;"
                                         {% elif order.status == 'No Pagada' %} style="color: #ee7b1e;"
-                                        {% endif %} ><b>{{order.status}}</b></span> <small> <span style="color: #404444; text-left"> | usuario: {{order.user.full_name}} </span> </small> <br>
+                                        {% endif %} ><b>{{order.get_status_display}}</b></span> <small> <span style="color: #404444; text-left"> {% if order.status == 'New' %} no pagada {% endif %} | usuario {{order.user.full_name}} </span> </small> <br>
                                         <small><span class="price text-muted small">
                                         {% if not orderproducts %}
                                             <var class="price text-muted">Orden no tiene productos</var> 
@@ -73,7 +73,7 @@
                                                 target="_blank" class="btn btn-secondary">Imprimir ticket</a>-->
                                         <a href=" {% url "order_detail" order.id %} " class="btn btn-info "> Detalles </a> 
                                         
-                                        {% if not order.status == 'Pagada' %}
+                                        {% if order.status == 'New' or  order.status == 'No Pagada' %}
                                         <div class="form-group">
                                             <button type="submit" name="pay" value="{{order.number}}" class="btn btn-warning btn-block mt-1"> Pagar ${{order.total|floatformat:"2g" }}</button>
                                         </div>

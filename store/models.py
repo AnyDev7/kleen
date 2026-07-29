@@ -42,7 +42,10 @@ class Product(models.Model):
     name = models.CharField('Nombre prod', max_length=100, unique=True)
     slug = models.SlugField(max_length=255, unique=True)
     brand = models.CharField('Marca', max_length=50, blank=True)
+    sku = models.CharField("SKU", max_length=50, blank=True, null=True, unique=True)
+    barcode = models.CharField("Código de barras", max_length=100, blank=True, null=True, unique=True)
     description = models.TextField('Descripción', max_length=300, blank=True)
+    is_service = models.BooleanField('Es un servicio', default=False)
     data_sheet = models.TextField('Ficha técnica', max_length=1000, blank=True)
     price = models.FloatField('Precio', blank=True)
     stock = models.IntegerField('Existencias totales', blank=True)
@@ -107,7 +110,7 @@ class StockVar(models.Model):
     variation = models.ForeignKey(Variation, verbose_name='Variacion', on_delete=models.CASCADE, blank=True, null=True)
     value = models.CharField('Valor de la variacion',max_length=50)
     stock = models.IntegerField('Existencia por variación', blank=True, null=True)
-    # No lleva diferente precio en variaciones: price = models.FloatField('Precio por variación', blank=True, default=None)
+    # precio por variaciones: price = models.FloatField('Precio por variación', blank=True, default=None)
     
     class Meta:
         verbose_name = 'Existencia por variación'

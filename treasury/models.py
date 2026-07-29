@@ -25,9 +25,9 @@ class Cashier(models.Model):
 
 class CashRegister(models.Model):    
     STATUS = (
-        ('Activa', 'Activa'),  #Cual es el valor y cúal el key?
-        ('Inactiva', 'Inactiva'), #Cual es el valor y cúal el key?
-        ('Ocupada', 'Ocupada'), #Cual es el valor y cúal el key?
+        ('Active', 'Activa'),   #('valor', 'etiqueta')
+        ('Inactive', 'Inactiva'),
+        ('Busy', 'Ocupada'),
     )
     name = models.CharField("Caja", max_length=20, default="")
     status = models.CharField("Estatus", max_length=20, choices=STATUS, default="Activa")
@@ -62,7 +62,7 @@ class CashCut(models.Model):
     collect_balance = models.FloatField("Cobranza", null=True, default=0)
     final_balance = models.FloatField("Saldo final", null=True, default=0)
     total_cash = models.FloatField("Saldo efectivo", null=True, default=0)
-    status = models.CharField("Estatus", max_length=15, choices=STATUS, default="Iniciado")
+    status = models.CharField("Estatus", max_length=15, choices=STATUS, default="Started")
     start_at = models.DateTimeField("Inicio", auto_now_add=True)
     end_at = models.DateTimeField("Finalizo", null=True)
 

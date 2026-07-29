@@ -20,23 +20,6 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_protect #CHECAR 15ABR2026
 
 
-#Función para pagar ordenes cobradas desde "Mis Ordenes"  / NO PROGRAMADA
-# Sustituye payment_deferred y manda a pagar a payment_kleen.html
-# Por programar 20Jun2026 / NO PROGRAMADA: 7Jul 2026
-def collect_pay(request):
-    order = get_object_or_404(Order,user=current_user, number=order_number, is_ordered=False)
-    context = {
-        'order': order,
-        'cart_items': cart_items,
-        'total': total,
-        'ship_cost': ship_cost,
-        'tax': tax,
-        'g_total': g_total,
-        'ship_total': ship_total,
-        'delivery': delivery,
-    }
-    return render(request, 'order/payment_kleen.html', context)
-
 #Función sólo para renderizar payment_kleen.html con los datos de la orden y el pago por liquidar.
 #Pago desde consulta my_orders en account.views > my_orders.html
 # enviar datos a payment_kleen.html > payment_cash() > order_complete() > order_complete.html
@@ -80,17 +63,17 @@ def payment_cash(request, collect):
         payment_id = request.POST.get('payment_id')
         order_number = request.POST.get('order_number')
         payment_id = type_payment + order_number
-        payment_method = 'Efectivo'
-        if type_payment == 'transfer':
-            payment_method = 'Transferencia'
-        elif type_payment == 'paypal':
+        payment_method = 'Cash'
+        if type_payment == 'Transfer':
+            payment_method = 'Transfer'
+        elif type_payment == 'Paypal':
             payment_method = 'Paypal'
         
         #agregado 9 jul 2026, pagar ordenes de otros usuarios.
         # Corregir las query de order sin request.user  if collect == 1:
         try:
             if collect == 1: # Pago de Cobranza
-                # obtener orden procesada y no pagada, y el pago pendiente.
+                # obtener orden procesada y 'No Pagada' = 'New', y el pago pendiente.
                 # Pagar orden de cualquier usuario 
                 #order = Order.objects.get(user=request.user, number=order_number)
                 #Checar si Payment almacena user, para poner request.user (actual)
@@ -98,13 +81,13 @@ def payment_cash(request, collect):
                 payment = Payment.objects.get(id=order.payment_id)
                 payment.user = request.user
                 payment.collect = True
-                payment.status = "Completado"
+                payment.status = "Completed"
                 payment.payment_method = payment_method
                 payment.paid_at = datetime.now()
                 payment.save()
                 order.paid_at = datetime.now()
             else: # Pago de nueva orden
-                # obtener Orden no procesada y no pagada, crear el pago.
+                # obtener Orden no procesada y 'No Pagada' = 'New', crear el pago.
                 order = get_object_or_404(Order, user=request.user, is_ordered=False, number=order_number)
                 # store transaction data
                 payment = Payment(
@@ -112,23 +95,23 @@ def payment_cash(request, collect):
                     payment_id = payment_id, #request.POST.get('payment_id'), #En el modelo Payment, payment_id no es un indice, almacena el id
                     payment_method = payment_method,
                     amount_paid = order.total,  #float(body['payment_amount']), #Order model: order.total
-                    status = "Completado",
+                    status = "Completed",
                 )
                 payment.save()
                 order.payment = payment  # Foreign_key se asigna el objeto completo al campo ForeignKey
                 order.is_ordered = True
             if "submit_cash" in request.POST: # Si la orden se pagó al momento
-                order.status = "Pagada"
+                order.status = "Paid" #Pagada
                 order.paid_at = datetime.now() # NO usar datetime.now() - timezone.now() en lugar de datetime.now() porque respeta la configuración de TIME_ZONE y USE_TZ
                 payment.paid_at = datetime.now() # # TIME_ZONE ya está definido, se usa= datetime.now() - Usar timezone.now() en lugar de datetime.now() Si no está configurado TIME_ZONE y USE_TZ
                 payment.save()
                 #print(f"Submit Cash: 'submit_cash', Existe:{request.POST}")
             elif "submit_deferred" in request.POST: #Pago de la orden diferido
-                order.status = "No Pagada"
+                order.status = "New" #No Pagada
                 order.paid_at = None
                 payment.paid_at = None
-                payment.payment_method = "Por Cobrar"
-                payment.status = "Por Cobrar"
+                payment.payment_method = "Deferred" #Por Cobrar
+                payment.status = "Deferred" #Por Cobrar
                 payment.save()
                 #print(f"Submit Deferred: 'submit_deferred', Existe:{request.POST}")
                 #print(f"Payment Status: 'payment.status', Existe:{payment.status}")
@@ -180,7 +163,7 @@ def payment_cash(request, collect):
                 send_email = EmailMessage(mail_subject, mail_message, to=[to_email])
                 send_email.send()
 
-            #Agregado 20Jun 2026 Claude - JMBS, para imprimir regresa a:
+            #Agregado 20Jun 2026 Clde - JMBS, para imprimir regresa a:
             base_url = reverse('order_complete')
             params = urlencode({
                 'order_number': order.number,
@@ -209,7 +192,7 @@ def payment_cash(request, collect):
                 'payment': payment,
                 'COMPANY_LOGO': COMPANY_LOGO
             }
-            #Agregado el 20Jun 2026 Claude code
+            #Agregado el 20Jun 2026 Clde code
             #if request.GET.get('ticket') == '1':
             #    return render(request, 'order/ticket_order.html', context)
             #Return modificado 20Jun 2026 - JMBS, se cambia por ridirect
@@ -320,10 +303,9 @@ def place_order(request, delivery, order_note, customer_id=1, address_id=None, t
     tax = 0 #Cálculo de impuestos: (2 * total)/100
     sub_total = 0
     g_total = 0
-    address = None
+    address = None #Se debe obtener la dirección del Customer
     try:
         customer = Customer.objects.get(id=customer_id)
-        #print("Cliente:", customer)
     except Exception as e:
         messages.error(request, f'No existe el cliente. place_order() {e}')
         return redirect('ecart')
@@ -332,7 +314,7 @@ def place_order(request, delivery, order_note, customer_id=1, address_id=None, t
         cart_items = CartItem.objects.filter(user=current_user).exclude(quantity=0)
         cart_count = cart_items.count()
     except Exception as e:
-        print("Error capturado en place_order():", e)
+        #print("Error capturado en place_order():", e)
         messages.error(request, f'No se registró su orden. place_order() {e}')
         return redirect('ecart')
     if cart_count <= 0:
@@ -348,14 +330,6 @@ def place_order(request, delivery, order_note, customer_id=1, address_id=None, t
     else:
         ship_cost = 0
         logistic_supp = 'pickup'
-
-        """
-        #Obtener dirección del cliente si delivery== 'ship'
-        try:
-            address = Address.objects.get(id=address_id)
-        except Address.DoesNotExist:
-            return redirect('store')
-        """
     
     for cart_item in cart_items:
         cart_price = 0
@@ -369,21 +343,11 @@ def place_order(request, delivery, order_note, customer_id=1, address_id=None, t
         #cartitem_price() verifica precio de promoción del model CartItem de ecart
         cart_item.price = cart_price
         cart_item.save()
-
     
     ship_total = total + ship_cost
     g_total = ship_total + tax # debería ser si se cobran impuestos: g_total = ship_total + tax
 
     if request.method == 'POST':
-        """
-        # Borrar: Cómo iterar un request.POST
-        post = []
-        for key in request.POST:
-            post.append(request.POST[key])
-        return HttpResponse(post)
-        # Borrar
-        """
-
         try:
             data = Order()
             data.user_id = current_user.id # en el modelo la relación se hace un campo user_id
@@ -406,34 +370,26 @@ def place_order(request, delivery, order_note, customer_id=1, address_id=None, t
                 data.city = COMPANY_CITY #current_user.city
                 data.zipcode = COMPANY_ZIP
             else:
-                data.address_line_1 = address.address_line_1
-                data.address_line_2 = address.address_line_2
-                data.country = address.country
-                data.state = address.state
-                data.city = address.city
-                data.zipcode = address.zipcode
-                data.phone = address.phone
+                data.address_line_1 = customer.address_line_1
+                data.address_line_2 = customer.address_line_2
+                data.country = customer.country
+                data.state = customer.state
+                data.city = customer.city
+                data.email = customer.email
+                data.phone = customer.phone
+                data.zipcode = customer.zipcode
             data.note = order_note
             data.sub_total = total # total de productos antes de envio e impuestos
             data.ship_cost = ship_cost                
             data.tax = tax
             data.total = g_total
-            data.status = "Recibida"
+            data.status = "New"
             data.logistic_supp = logistic_supp
             data.ip = request.META.get('REMOTE_ADDR')
             data.save()
 
-            # Generate order number
-            #yr = int(datetime.today().strftime('%Y'))
-            #mt = int(datetime.today().strftime('%m'))
-            #dt = int(datetime.today().strftime('%d'))
-            #d = datetime.date(yr, mt, dt)
-            #current_date = d.strftime('%Y%m%d') #20240611
-            
             # 15Julio 2026 Se cambió
             current_date = date.today().strftime('%Y%m%d') #20240611
-            
-            
             
             # Rellenar de ceros 5 espacios
             # "42".zfill(5) >>> '00042'
@@ -487,7 +443,7 @@ def order_complete(request):
             'payment': payment,
             'COMPANY_LOGO': COMPANY_LOGO,
         }
-        #Agregado 20Jun Claude code
+        #Agregado 20Jun Clde
         if request.GET.get('ticket') == '1':
             return render(request, 'order/ticket_order.html', context)
         return render(request, "order/order_complete.html", context)

@@ -405,10 +405,10 @@ def my_orders(request):
 @login_required(login_url='login')
 def pending_orders(request):
     try:
-        #Seleccionar ordenes sin pago 'No pagada' de todos los usuarios
+        #Seleccionar ordenes sin pago 'No pagada' = 'New' de todos los usuarios
         # Sí funciona: orders = Order.objects.order_by('-created_at').filter(user_id=request.user.id, is_ordered=True, paid_at=None)
-        orders = Order.objects.order_by('-created_at').filter(is_ordered=True, status="No Pagada")
-        #orderproducts = OrderProduct.objects.filter(user__id=request.user.id, ordered=True)
+        orders = Order.objects.order_by('-created_at').filter(is_ordered=True, status="New")
+        # Sólo los orderproducts de las ordenes consultadas
         orderproducts = OrderProduct.objects.filter(order__in=orders, ordered=True)
             
         #Si la tabla OrderProduct es muy extensa, consume recursos excesivos?

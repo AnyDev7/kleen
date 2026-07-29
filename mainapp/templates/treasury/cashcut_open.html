@@ -24,7 +24,7 @@
                         <!-- Iteración de clientes-->
                         {% for cashregister in cashregisters %}
                                 <option value="{{cashregister.id}}">
-                                      {{cashregister.name|capfirst}} | <small class="text-muted">{{cashregister.status}} </small>
+                                      {{cashregister.name|capfirst}} | <small class="text-muted">{{cashregister.get_status_display}} </small>
                                 </option>
                         {% endfor %}
                     </select>

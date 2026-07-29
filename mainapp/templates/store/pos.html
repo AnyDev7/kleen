@@ -1,0 +1,784 @@
+{% extends "mainapp/layout.html" %}
+{% load static %}
+{% block content %}
+<!--<div class="pos-container" style="display:flex; flex-direction:column; height:calc(100vh - 60px); background:#f5f5f5;">-->
+<div class="pos-container" style="display:flex; flex-direction:column; height:calc(100vh - 60px); background: #e0e0e0">
+
+    <!-- BARRA SUPERIOR: búsqueda y cliente -->
+    <!--<div class="pos-topbar" style="background:#fff; padding:10px 15px; border-bottom:1px solid #ddd; display:flex; gap:10px; align-items:center;">-->
+    <div class="pos-topbar" style="background:#e0e0e0; padding:10px 15px; border-bottom:1px solid #ddd; display:flex; gap:10px; align-items:center;">
+        
+        <!-- Buscador de producto -->
+        <div style="position:relative; flex:2;">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fa fa-barcode"></i></span>
+                </div>
+                <input type="text" id="pos-search" class="form-control" 
+                    placeholder="Código de barras, SKU o nombre del producto..."
+                    autocomplete="off" autofocus>
+            </div>
+            <!-- Dropdown resultados -->
+            <div id="pos-search-results" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:1000; background:#fff; border:1px solid #ddd; border-radius:0 0 4px 4px; max-height:300px; overflow-y:auto; box-shadow:0 4px 8px rgba(0,0,0,.1);">
+            </div>
+        </div>
+
+        <!-- Buscador de cliente -->
+        <div style="position:relative; flex:1;">
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text"><i class="fa fa-user"></i></span>
+                </div>
+                <input type="text" id="pos-customer-search" class="form-control"
+                    placeholder="Buscar cliente..."
+                    autocomplete="off">
+            </div>
+            <div id="pos-customer-results" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:1000; background:#fff; border:1px solid #ddd; border-radius:0 0 4px 4px; max-height:200px; overflow-y:auto; box-shadow:0 4px 8px rgba(0,0,0,.1);">
+            </div>
+            <!-- Cliente seleccionado -->
+            <input type="hidden" id="pos-customer-id" value="">
+            {% comment "Cambio: SIN cliente MOSTRADOR SELECTED ID=1" %}
+            <small id="pos-customer-selected" class="text-success" style="display:none;">
+                <i class="fa fa-check"></i> <span id="pos-customer-name"></span>
+                <a href="#" id="pos-customer-clear" class="text-danger ml-2"><i class="fa fa-times"></i></a>
+            </small>
+            {% endcomment %}
+            <small id="pos-customer-selected" style="display:block;">
+                <i class="fa fa-check text-success"></i>
+                <span id="pos-customer-name">{{ default_customer.name }}</span>
+                <a href="#" id="pos-customer-clear" class="text-danger ml-2"><i class="fa fa-times"></i></a>
+            </small>
+            <input type="hidden" id="pos-customer-id" value="{{ default_customer.id }}">
+        </div>
+
+        <!-- Método de pago -->
+        <div style="flex:1;">
+            <select id="pos-payment-method" class="form-control">
+                <option value="">-- Método de pago --</option>
+                <option value="Cash" selected>Efectivo</option>
+                <option value="Transfer">Transferencia</option>
+                <option value="Paypal">Paypal / Tarjeta</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- TABLA DE ITEMS -->
+    <div style="flex:1; overflow-y:auto; padding:10px 15px;">
+        <table class="table table-sm table-hover bg-white" id="pos-items-table">
+            <!--<thead class="thead-blue">-->
+            <thead class="bg-primary text-white">
+                <tr>
+                    <th>Producto</th>
+                    <th class="text-center" width="180">Cantidad</th>
+                    <th class="text-center" width="80"></th>
+                    <th class="text-right" width="120">Precio</th>
+                    <th class="text-right" width="120">Importe</th>
+                </tr>
+            </thead>
+            <tbody id="pos-items-body">
+                {% for cart_item in cart_items %}
+                <tr data-cartitem-id="{{ cart_item.id }}" data-product-id="{{ cart_item.product.id }}">
+                    <td>
+                        <strong>{{ cart_item.product.name }}</strong>
+                        {% if cart_item.variations.all %}
+                        <br>
+                        {% for var in cart_item.variations.all %}
+                            <small class="text-muted">{{ var.variation|capfirst }}: {{ var.value|capfirst }}</small>
+                        {% endfor %}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex justify-content-center">
+                            <div class="input-group" style="width:auto;">
+                                <div class="input-group-prepend">
+                                    <a href="javascript:void(0)"
+                                        data-product-id="{{ cart_item.product.id }}"
+                                        data-cartitem-id="{{ cart_item.id }}"
+                                        data-direction="-1"
+                                        class="btn btn-sm btn-light btn-step{% if cart_item.quantity <= 0 %} disabled{% endif %}"
+                                        {% if cart_item.quantity <= 0 %}aria-disabled="true" tabindex="-1"{% endif %}>
+                                        <i class="fa fa-minus"></i>
+                                    </a>
+                                </div>
+                                <input name="qty_bunch" type="text" class="form-control form-control-sm text-center"
+                                    value="{{ cart_item.quantity }}"
+                                    data-stock="{{ cart_item.product.stock }}"
+                                    style="width:55px;">
+                                <div class="input-group-append">
+                                    <a href="javascript:void(0)"
+                                        data-product-id="{{ cart_item.product.id }}"
+                                        data-cartitem-id="{{ cart_item.id }}"
+                                        data-direction="1"
+                                        class="btn btn-sm btn-light btn-step{% if cart_item.quantity >= cart_item.product.stock %} disabled{% endif %}"
+                                        {% if cart_item.quantity >= cart_item.product.stock %}aria-disabled="true" tabindex="-1"{% endif %}>
+                                        <i class="fa fa-plus"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <a href="javascript:void(0)"
+                            data-product-id="{{ cart_item.product.id }}"
+                            data-cartitem-id="{{ cart_item.id }}"
+                            class="btn btn-sm btn-primary btn-bunch">
+                            <i class="fa fa-cubes"></i>
+                        </a>
+                    </td>
+                    <td class="text-right">
+                        {% if cart_item.product.has_discount %}
+                            <span class="text-danger">${{ cart_item.product.low_price|floatformat:"2g" }}</span>
+                            <br><del class="text-muted small">${{ cart_item.product.price|floatformat:"2g" }}</del>
+                        {% else %}
+                            ${{ cart_item.product.price|floatformat:"2g" }}
+                        {% endif %}
+                    </td>
+                    <td class="text-right">
+                        <strong class="item-subtotal">${{ cart_item.sub_total|floatformat:"2g" }}</strong>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr id="pos-empty-row">
+                    <td colspan="5" class="text-center text-muted py-4">
+                        <i class="fa fa-barcode fa-2x mb-2"></i><br>
+                        Escanea o busca un producto para comenzar
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- BARRA INFERIOR: total y cobro -->
+    <div class="pos-bottombar" style="background:#fff; border-top:2px solid #dee2e6; padding:12px 15px; display:flex; align-items:center; gap:15px;">
+        
+        <div style="flex:1;">
+            <small class="text-muted">Items en venta</small><br>
+            <strong id="pos-item-count">{{ cart_items|length }}</strong>
+        </div>
+
+        <div style="flex:1; text-align:center;">
+            <small class="text-muted">Subtotal</small><br>
+            <span id="tot-service" class="h5 mb-0">${{ total|floatformat:"2g" }}</span>
+        </div>
+
+        <div style="flex:1; text-align:center;">
+            <small class="text-muted">TOTAL</small><br>
+            <strong id="tot-pay" class="h4 mb-0 text-primary">${{ total|floatformat:"2g" }}</strong>
+        </div>
+
+        <div style="flex:2; text-align:right;">
+            <button id="btn-cobrar" class="btn btn-success btn-lg px-4"
+                {% if not total > 0 %}disabled{% endif %}>
+                <i class="fa fa-cash-register"></i> Cobrar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE COBRO -->
+<div class="modal fade" id="cobrarModal" tabindex="-1" role="dialog" aria-labelledby="cobrarModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title" id="cobrarModalLabel"><i class="fa fa-cash-register"></i> Cobrar venta</h5>
+                <button type="button" class="close text-white" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            {% comment "Modal con 1 forma de pago" %}
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <small class="text-muted">Total a cobrar</small>
+                    <div class="h2 text-primary" id="modal-total">${{ total|floatformat:"2g" }}</div>
+                </div>
+                <div class="form-group">
+                    <label>Monto recibido</label>
+                    <div class="input-group input-group-lg">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">$</span>
+                        </div>
+                        <input type="number" id="monto-recibido" class="form-control form-control-lg"
+                            min="0" step="0.01" placeholder="0.00">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Cambio</label>
+                    <div class="input-group input-group-lg">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">$</span>
+                        </div>
+                        <input type="text" id="cambio" class="form-control form-control-lg text-success font-weight-bold"
+                            value="0.00" readonly>
+                    </div>
+                </div>
+            </div>
+            <!--modal pago termina body-->
+            {% endcomment %}
+            
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <small class="text-muted">Total a cobrar</small>
+                    <div class="h2 text-primary" id="modal-total">${{ total|floatformat:"2g" }}</div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-4">
+                        <label><i class="fa fa-money-bill-wave text-success"></i> Efectivo</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend"><span class="input-group-text">$</span></div>
+                            <input type="number" id="monto-efectivo" class="form-control monto-pago"
+                                min="0" step="0.01" placeholder="0.00" value="0">
+                        </div>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label><i class="fa fa-exchange-alt text-info"></i> Transferencia</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend"><span class="input-group-text">$</span></div>
+                            <input type="number" id="monto-transferencia" class="form-control monto-pago"
+                                min="0" step="0.01" placeholder="0.00" value="0">
+                        </div>
+                    </div>
+                    <div class="form-group col-md-4">
+                        <label><i class="fa fa-credit-card text-warning"></i> Paypal/TC</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend"><span class="input-group-text">$</span></div>
+                            <input type="number" id="monto-paypal" class="form-control monto-pago"
+                                min="0" step="0.01" placeholder="0.00" value="0">
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="form-row align-items-center">
+                    <div class="col-md-6">
+                        <small class="text-muted">Total recibido:</small>
+                        <span id="total-recibido" class="h5 ml-2">$0.00</span>
+                    </div>
+                    <div class="col-md-6 text-right">
+                        <small class="text-muted">Cambio / Devolución:</small>
+                        <span id="cambio" class="h5 ml-2 font-weight-bold text-success">$0.00</span>
+                    </div>
+                </div>
+            </div>
+            <!--modal pago termina body-->
+            <div class="form-group mt-2">
+                <label><i class="fa fa-sticky-note text-muted"></i> Nota (opcional)</label>
+                <input type="text" id="pos-order-note" class="form-control" 
+                    placeholder="Instrucciones o comentarios..." maxlength="200">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <a id="btn-confirmar-cobro" href="#" class="btn btn-success btn-lg">
+                    <i class="fa fa-check"></i> Confirmar cobro
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODALES heredados de ecart -->
+<div class="modal fade" id="confirmZeroModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar cantidad</h5>
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <div class="modal-body">¿Deseas dejar este producto en 0 piezas? No se eliminará del carrito.</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmZeroBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="stockModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Existencias insuficientes</h5>
+                <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+            </div>
+            <div class="modal-body" id="stockModalBody">No hay suficientes existencias disponibles.</div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Aceptar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    let pendingZeroUpdate = null;
+    let posTotal = {{ total|default:0 }};
+
+    // ── Helpers de estado de botones (igual que ecart) ──────────────────
+    function setMinusState(minusBtn, qty) {
+        if (!minusBtn) return;
+        if (qty <= 0) { minusBtn.classList.add('disabled'); minusBtn.setAttribute('aria-disabled','true'); minusBtn.setAttribute('tabindex','-1'); }
+        else          { minusBtn.classList.remove('disabled'); minusBtn.removeAttribute('aria-disabled'); minusBtn.removeAttribute('tabindex'); }
+    }
+    function setPlusState(plusBtn, qty, stock) {
+        if (!plusBtn) return;
+        if (qty >= stock) { plusBtn.classList.add('disabled'); plusBtn.setAttribute('aria-disabled','true'); plusBtn.setAttribute('tabindex','-1'); }
+        else              { plusBtn.classList.remove('disabled'); plusBtn.removeAttribute('aria-disabled'); plusBtn.removeAttribute('tabindex'); }
+    }
+
+    // ── Actualizar UI del carrito ────────────────────────────────────────
+    function updateCartUI(row, data) {
+        const qtyInput   = row.querySelector('input[name="qty_bunch"]');
+        const subtotalEl = row.querySelector('.item-subtotal');
+        const minusBtn   = row.querySelector('.btn-step[data-direction="-1"]');
+        const plusBtn    = row.querySelector('.btn-step[data-direction="1"]');
+
+        if (qtyInput)   qtyInput.value = data.new_quantity;
+        if (subtotalEl) subtotalEl.textContent = '$' + fmt(data.new_subtotal);
+
+        setMinusState(minusBtn, data.new_quantity);
+        setPlusState(plusBtn, data.new_quantity, data.available_stock);
+
+        // Actualizar totales globales
+        posTotal = data.total;
+        document.getElementById('tot-pay').textContent    = '$' + fmt(data.total);
+        document.getElementById('tot-service').textContent = '$' + fmt(data.total);
+        document.getElementById('pos-item-count').textContent = data.tot_qty;
+        document.getElementById('modal-total').textContent = '$' + fmt(data.total);
+
+        // Habilitar/deshabilitar botón cobrar
+        document.getElementById('btn-cobrar').disabled = data.total <= 0;
+
+        // Quitar fila vacía si existe
+        const emptyRow = document.getElementById('pos-empty-row');
+        if (emptyRow) emptyRow.remove();
+
+        // Recalcular cambio si el modal está abierto
+        calcCambio();
+    }
+
+    function fmt(val) {
+        return Number(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    // ── Fetch de actualización de cantidad ───────────────────────────────
+    function sendQuantityUpdate(productId, cartItemId, quantity, row) {
+        fetch('{% url "update_bunch_quantity" %}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            body: JSON.stringify({ product_id: productId, cart_item_id: cartItemId, quantity: quantity })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.status === 'ok') {
+                updateCartUI(row, data);
+            } else if (data.available_stock !== undefined) {
+                document.getElementById('stockModalBody').textContent = data.message;
+                $('#stockModal').modal('show');
+            } else {
+                alert(data.message || 'No se pudo actualizar la cantidad');
+            }
+        })
+        .catch(e => console.error('Error:', e));
+    }
+
+    // ── Botón bunch ──────────────────────────────────────────────────────
+    document.querySelectorAll('.btn-bunch').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            const row = btn.closest('tr');
+            const qtyInput = row.querySelector('input[name="qty_bunch"]');
+            const quantity = parseInt(qtyInput.value, 10);
+            const stock    = parseInt(qtyInput.dataset.stock, 10);
+            if (isNaN(quantity) || quantity < 0) { alert('Cantidad inválida'); return; }
+            if (quantity > stock) {
+                document.getElementById('stockModalBody').textContent = `Existencias insuficientes. Disponibles: ${stock}`;
+                $('#stockModal').modal('show');
+                return;
+            }
+            sendQuantityUpdate(btn.dataset.productId, btn.dataset.cartitemId, quantity, row);
+        });
+    });
+
+    // ── Botones +/- ──────────────────────────────────────────────────────
+    document.querySelectorAll('.btn-step').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (btn.classList.contains('disabled')) return;
+            const row = btn.closest('tr');
+            const qtyInput    = row.querySelector('input[name="qty_bunch"]');
+            const current     = parseInt(qtyInput.value, 10) || 0;
+            const stock       = parseInt(qtyInput.dataset.stock, 10);
+            const direction   = parseInt(btn.dataset.direction, 10);
+            const newQuantity = current + direction;
+            if (newQuantity < 0) return;
+            if (newQuantity === 0) {
+                pendingZeroUpdate = { productId: btn.dataset.productId, cartItemId: btn.dataset.cartitemId, row };
+                $('#confirmZeroModal').modal('show');
+                return;
+            }
+            if (newQuantity > stock) {
+                document.getElementById('stockModalBody').textContent = `Existencias insuficientes. Disponibles: ${stock}`;
+                $('#stockModal').modal('show');
+                return;
+            }
+            sendQuantityUpdate(btn.dataset.productId, btn.dataset.cartitemId, newQuantity, row);
+        });
+    });
+
+    document.getElementById('confirmZeroBtn').addEventListener('click', function () {
+        if (pendingZeroUpdate) {
+            sendQuantityUpdate(pendingZeroUpdate.productId, pendingZeroUpdate.cartItemId, 0, pendingZeroUpdate.row);
+            pendingZeroUpdate = null;
+        }
+        $('#confirmZeroModal').modal('hide');
+    });
+
+    // ── Búsqueda de productos ────────────────────────────────────────────
+    const searchInput   = document.getElementById('pos-search');
+    const searchResults = document.getElementById('pos-search-results');
+    let searchTimer = null;
+
+    searchInput.addEventListener('input', function () {
+        clearTimeout(searchTimer);
+        const term = this.value.trim();
+        if (term.length < 2) { searchResults.style.display = 'none'; return; }
+        searchTimer = setTimeout(() => {
+            fetch(`{% url "pos_search_product" %}?q=${encodeURIComponent(term)}`, {
+                headers: { 'X-CSRFToken': getCookie('csrftoken') }
+            })
+            .then(r => r.json())
+            .then(data => {
+                searchResults.innerHTML = '';
+                if (data.products.length === 0) {
+                    searchResults.innerHTML = '<div class="p-2 text-muted">Sin resultados</div>';
+                } else {
+                    data.products.forEach(p => {
+                        const item = document.createElement('div');
+                        item.className = 'p-2 border-bottom';
+                        item.style.cursor = 'pointer';
+                        item.innerHTML = `
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>${p.name}</strong>
+                                    <small class="text-muted ml-2">${p.sku || ''}</small><br>
+                                    <small class="text-muted">${p.barcode || ''}</small>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-primary font-weight-bold">$${fmt(p.price)}</span><br>
+                                    <small class="text-muted">Stock: ${p.stock}</small>
+                                </div>
+                            </div>`;
+                        item.addEventListener('mouseenter', () => item.style.background = '#f0f0f0');
+                        item.addEventListener('mouseleave', () => item.style.background = '');
+                        item.addEventListener('click', () => addProductToCart(p));
+                        searchResults.appendChild(item);
+                    });
+                }
+                searchResults.style.display = 'block';
+            })
+            .catch(e => console.error('Error búsqueda:', e));
+        }, 300);
+    });
+
+    // Cerrar dropdown al hacer clic fuera
+    document.addEventListener('click', function (e) {
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.style.display = 'none';
+        }
+    });
+
+    // Agregar producto al carrito desde el dropdown
+function addProductToCart(product) {
+    fetch('{% url "pos_add_product" %}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({ product_id: product.id })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            searchInput.value = '';
+            searchResults.style.display = 'none';
+
+            // Quitar fila vacía si existe
+            const emptyRow = document.getElementById('pos-empty-row');
+            if (emptyRow) emptyRow.remove();
+
+            const tbody = document.getElementById('pos-items-body');
+            const existingRow = tbody.querySelector(`tr[data-cartitem-id="${data.cart_item_id}"]`);
+
+            if (data.created || !existingRow) {
+                // Fila nueva
+                const tr = document.createElement('tr');
+                tr.setAttribute('data-cartitem-id', data.cart_item_id);
+                tr.setAttribute('data-product-id', data.product_id);
+                tr.innerHTML = buildRowHTML(data);
+                tbody.appendChild(tr);
+            } else {
+                // Actualizar cantidad y subtotal de fila existente
+                const qtyInput = existingRow.querySelector('input[name="qty_bunch"]');
+                const subtotalEl = existingRow.querySelector('.item-subtotal');
+                const plusBtn = existingRow.querySelector('.btn-step[data-direction="1"]');
+                if (qtyInput) qtyInput.value = data.quantity;
+                if (subtotalEl) subtotalEl.textContent = '$' + fmt(data.subtotal);
+                setPlusState(plusBtn, data.quantity, data.available_stock);
+            }
+
+            // Actualizar totales globales
+            posTotal = data.total;
+            document.getElementById('tot-pay').textContent     = '$' + fmt(data.total);
+            document.getElementById('tot-service').textContent = '$' + fmt(data.total);
+            document.getElementById('modal-total').textContent = '$' + fmt(data.total);
+            document.getElementById('pos-item-count').textContent = data.tot_qty;
+            document.getElementById('btn-cobrar').disabled = data.total <= 0;
+
+            // Re-vincular eventos a los botones de la nueva fila
+            bindRowEvents(tbody.querySelector(`tr[data-cartitem-id="${data.cart_item_id}"]`));
+
+            // Mantener foco en el buscador para el siguiente escaneo
+            searchInput.focus();
+
+        } else if (data.available_stock !== undefined) {
+            document.getElementById('stockModalBody').textContent = data.message;
+            $('#stockModal').modal('show');
+        } else {
+            alert(data.message || 'No se pudo agregar el producto');
+        }
+    })
+    .catch(e => console.error('Error al agregar:', e));
+}
+
+function buildRowHTML(data) {
+    const priceHTML = data.has_discount
+        ? `<span class="text-danger">$${fmt(data.price)}</span><br><del class="text-muted small">$${fmt(data.original_price)}</del>`
+        : `$${fmt(data.price)}`;
+
+    return `
+        <td>
+            <strong>${data.product_name}</strong>
+        </td>
+        <td>
+            <div class="d-flex justify-content-center">
+                <div class="input-group" style="width:auto;">
+                    <div class="input-group-prepend">
+                        <a href="javascript:void(0)"
+                            data-product-id="${data.product_id}"
+                            data-cartitem-id="${data.cart_item_id}"
+                            data-direction="-1"
+                            class="btn btn-sm btn-light btn-step${data.quantity <= 0 ? ' disabled' : ''}">
+                            <i class="fa fa-minus"></i>
+                        </a>
+                    </div>
+                    <input name="qty_bunch" type="text"
+                        class="form-control form-control-sm text-center"
+                        value="${data.quantity}"
+                        data-stock="${data.available_stock}"
+                        style="width:55px;">
+                    <div class="input-group-append">
+                        <a href="javascript:void(0)"
+                            data-product-id="${data.product_id}"
+                            data-cartitem-id="${data.cart_item_id}"
+                            data-direction="1"
+                            class="btn btn-sm btn-light btn-step${data.quantity >= data.available_stock ? ' disabled' : ''}">
+                            <i class="fa fa-plus"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </td>
+        <td class="text-center">
+            <a href="javascript:void(0)"
+                data-product-id="${data.product_id}"
+                data-cartitem-id="${data.cart_item_id}"
+                class="btn btn-sm btn-primary btn-bunch">
+                <i class="fa fa-cubes"></i>
+            </a>
+        </td>
+        <td class="text-right">${priceHTML}</td>
+        <td class="text-right">
+            <strong class="item-subtotal">$${fmt(data.subtotal)}</strong>
+        </td>`;
+}
+
+function bindRowEvents(row) {
+    if (!row) return;
+    row.querySelectorAll('.btn-step').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            if (btn.classList.contains('disabled')) return;
+            const qtyInput    = row.querySelector('input[name="qty_bunch"]');
+            const current     = parseInt(qtyInput.value, 10) || 0;
+            const stock       = parseInt(qtyInput.dataset.stock, 10);
+            const direction   = parseInt(btn.dataset.direction, 10);
+            const newQuantity = current + direction;
+            if (newQuantity < 0) return;
+            if (newQuantity === 0) {
+                pendingZeroUpdate = { productId: btn.dataset.productId, cartItemId: btn.dataset.cartitemId, row };
+                $('#confirmZeroModal').modal('show');
+                return;
+            }
+            if (newQuantity > stock) {
+                document.getElementById('stockModalBody').textContent = `Existencias insuficientes. Disponibles: ${stock}`;
+                $('#stockModal').modal('show');
+                return;
+            }
+            sendQuantityUpdate(btn.dataset.productId, btn.dataset.cartitemId, newQuantity, row);
+        });
+    });
+    row.querySelectorAll('.btn-bunch').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            const qtyInput = row.querySelector('input[name="qty_bunch"]');
+            const quantity = parseInt(qtyInput.value, 10);
+            const stock    = parseInt(qtyInput.dataset.stock, 10);
+            if (isNaN(quantity) || quantity < 0) { alert('Cantidad inválida'); return; }
+            if (quantity > stock) {
+                document.getElementById('stockModalBody').textContent = `Existencias insuficientes. Disponibles: ${stock}`;
+                $('#stockModal').modal('show');
+                return;
+            }
+            sendQuantityUpdate(btn.dataset.productId, btn.dataset.cartitemId, quantity, row);
+        });
+    });
+}
+
+    // ── Búsqueda de clientes ─────────────────────────────────────────────
+    const customerSearch   = document.getElementById('pos-customer-search');
+    const customerResults  = document.getElementById('pos-customer-results');
+    const customerSelected = document.getElementById('pos-customer-selected');
+    const customerName     = document.getElementById('pos-customer-name');
+    const customerId       = document.getElementById('pos-customer-id');
+    let customerTimer = null;
+
+    customerSearch.addEventListener('input', function () {
+        clearTimeout(customerTimer);
+        const term = this.value.trim();
+        if (term.length < 2) { customerResults.style.display = 'none'; return; }
+        customerTimer = setTimeout(() => {
+            fetch(`{% url "pos_search_customer" %}?q=${encodeURIComponent(term)}`, {
+                headers: { 'X-CSRFToken': getCookie('csrftoken') }
+            })
+            .then(r => r.json())
+            .then(data => {
+                customerResults.innerHTML = '';
+                if (data.customers.length === 0) {
+                    customerResults.innerHTML = '<div class="p-2 text-muted">Sin resultados</div>';
+                } else {
+                    data.customers.forEach(c => {
+                        const item = document.createElement('div');
+                        item.className = 'p-2 border-bottom';
+                        item.style.cursor = 'pointer';
+                        item.innerHTML = `<strong>${c.name}</strong> <small class="text-muted">${c.phone || ''}</small>`;
+                        item.addEventListener('mouseenter', () => item.style.background = '#f0f0f0');
+                        item.addEventListener('mouseleave', () => item.style.background = '');
+                        item.addEventListener('click', () => {
+                            customerId.value = c.id;
+                            customerName.textContent = c.name;
+                            customerSearch.style.display = 'none';
+                            customerSelected.style.display = 'block';
+                            customerResults.style.display = 'none';
+                        });
+                        customerResults.appendChild(item);
+                    });
+                }
+                customerResults.style.display = 'block';
+            })
+            .catch(e => console.error('Error búsqueda cliente:', e));
+        }, 300);
+    });
+
+    document.getElementById('pos-customer-clear').addEventListener('click', function (e) {
+        e.preventDefault();
+        customerId.value = '';
+        customerName.textContent = '';
+        customerSearch.value = '';
+        customerSearch.style.display = '';
+        customerSelected.style.display = 'none';
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!customerSearch.contains(e.target) && !customerResults.contains(e.target)) {
+            customerResults.style.display = 'none';
+        }
+    });
+
+    // ── Modal de cobro ───────────────────────────────────────────────────
+    document.getElementById('btn-cobrar').addEventListener('click', function () {
+    document.getElementById('modal-total').textContent = '$' + fmt(posTotal);
+    // Prellenar efectivo con el total como sugerencia
+    document.getElementById('monto-efectivo').value = fmt(posTotal).replace(',','');
+    document.getElementById('monto-transferencia').value = '0';
+    document.getElementById('monto-paypal').value = '0';
+    calcCambio();
+    $('#cobrarModal').modal('show');
+    setTimeout(() => document.getElementById('monto-efectivo').focus(), 400);
+});
+
+document.querySelectorAll('.monto-pago').forEach(input => {
+    input.addEventListener('input', calcCambio);
+});
+
+function calcCambio() {
+    const efectivo     = parseFloat(document.getElementById('monto-efectivo').value) || 0;
+    const transferencia = parseFloat(document.getElementById('monto-transferencia').value) || 0;
+    const paypal       = parseFloat(document.getElementById('monto-paypal').value) || 0;
+    const totalRecibido = efectivo + transferencia + paypal;
+    const cambio = totalRecibido - posTotal;
+
+    document.getElementById('total-recibido').textContent = '$' + fmt(totalRecibido);
+    const cambioEl = document.getElementById('cambio');
+    cambioEl.textContent = '$' + fmt(cambio >= 0 ? cambio : 0);
+    cambioEl.className = 'h5 ml-2 font-weight-bold ' + (cambio >= 0 ? 'text-success' : 'text-danger');
+
+    const btnConfirmar = document.getElementById('btn-confirmar-cobro');
+    btnConfirmar.classList.toggle('disabled', totalRecibido < posTotal);
+}
+
+document.getElementById('btn-confirmar-cobro').addEventListener('click', function (e) {
+    e.preventDefault();
+    if (this.classList.contains('disabled')) return;
+
+    const payments = [];
+    const efectivo      = parseFloat(document.getElementById('monto-efectivo').value) || 0;
+    const transferencia = parseFloat(document.getElementById('monto-transferencia').value) || 0;
+    const paypal        = parseFloat(document.getElementById('monto-paypal').value) || 0;
+
+    if (efectivo > 0)      payments.push({ method: 'Cash', amount: efectivo });
+    if (transferencia > 0) payments.push({ method: 'Transfer', amount: transferencia });
+    if (paypal > 0)        payments.push({ method: 'Paypal', amount: paypal });
+
+    fetch('{% url "pos_process_order" %}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({
+            customer_id: document.getElementById('pos-customer-id').value || 1,
+            order_note: document.getElementById('pos-order-note').value || '',
+            payments: payments,
+        })
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.status === 'ok') {
+            $('#cobrarModal').modal('hide');
+            window.location.href = data.redirect_url;
+        } else {
+            alert(data.message || 'Error al procesar la orden');
+        }
+    })
+    .catch(e => console.error('Error:', e));
+});
+
+    // ── CSRF ─────────────────────────────────────────────────────────────
+    function getCookie(name) {
+        let val = null;
+        if (document.cookie) {
+            document.cookie.split(';').forEach(c => {
+                c = c.trim();
+                if (c.startsWith(name + '=')) val = decodeURIComponent(c.substring(name.length + 1));
+            });
+        }
+        return val;
+    }
+});
+</script>
+{% endblock content %}

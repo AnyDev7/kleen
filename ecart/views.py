@@ -163,7 +163,7 @@ def add_prod(request, product_id, flag=False, qty=0): # ADD_CART course
                 cart_item.variations.add(*product_variations)  # igual a la iteración, *agrega todas:
 
             cart_item.save()
-        return #redirect('ecart')
+        return redirect('ecart')
     
     # If user is NOT authenticated
     else:
@@ -257,13 +257,13 @@ def add_prod(request, product_id, flag=False, qty=0): # ADD_CART course
 
             cart_item.save()
 
-        return #redirect('ecart')
+        return redirect('ecart')
 
 
 
 
-#Vista agregada 16Jun 2026 - Claude code
-#Actualizada Claude 18Jun 2026
+#Vista agregada 16Jun 2026 - Clde code
+#Actualizada Clde 18Jun 2026
 @require_POST
 def update_bunch_quantity(request):
     data = json.loads(request.body)

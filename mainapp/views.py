@@ -21,7 +21,7 @@ def home(request):
     previous_cr, status, cashregister = check_cr(request)
     print(f'Previous_cr:{previous_cr}, estatus:{status}, cashregister:{cashregister}')
 
-    if status == "Iniciado":
+    if status == "Started":
         #Si el corte está abierto y es el mismo usuario logeado
         if  previous_cr.user_id == request.user.id:
             return dashboard(request)
@@ -30,11 +30,11 @@ def home(request):
             messages.warning(request, f'Corte abierto del usuario: {previous_cr.user.first_name} {previous_cr.user.last_name}, inicie sesión con ese usuario: {previous_cr.user.username}.')
             #Debía ser login pero se salta la verificación y nos envía directo a dashboard
             return logout(request)
-    elif status == False or status == "Cerrado":
+    elif status == False or status == "Closed":
         #crear un corte
         messages.info(request, f'Crear nuevo corte del usuario:  {request.user.username}.')
         try:
-            cashregisters = CashRegister.objects.filter(status="Activa") #.order_by('name')
+            cashregisters = CashRegister.objects.filter(status="Active") #.order_by('name')
             cashr_count = cashregisters.count()
         except CashRegister.DoesNotExist:
             cashregisters = False
@@ -56,7 +56,8 @@ def home(request):
             return redirect('logout')        
         return render(request, 'treasury/cashcut_open.html', context) # 'treasury' subdirectorio en 'templates'
     else:
-        return redirect('home')
+        messages.warning(request, 'Estatus de corte no válido.')
+        return redirect('logout')
     
 
 def initial_menu(request):
