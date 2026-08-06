@@ -149,9 +149,9 @@
         </table>
     </div>
 
-    <!-- BARRA INFERIOR: total y cobro -->
+    <!-- BARRA INFERIOR: total y cobro pos-bottombar -->
     <div class="pos-bottombar" style="background:#fff; border-top:2px solid #dee2e6; padding:12px 15px; display:flex; align-items:center; gap:15px;">
-        
+
         <div style="flex:1;">
             <small class="text-muted">Items en venta</small><br>
             <strong id="pos-item-count">{{ cart_items|length }}</strong>
@@ -167,10 +167,24 @@
             <strong id="tot-pay" class="h4 mb-0 text-primary">${{ total|floatformat:"2g" }}</strong>
         </div>
 
-        <div style="flex:2; text-align:right;">
-            <button id="btn-cobrar" class="btn btn-success btn-lg px-4"
+        <div style="flex:4; text-align:right; display:flex; gap:8px; justify-content:flex-end; align-items:center;">
+            <a href="#" class="btn btn-outline-secondary">
+                <i class="fa-solid fa-shirt"></i> Producto <kbd>F5</kbd>
+            </a>
+            <a href="#" class="btn btn-outline-secondary">
+                <i class="fa fa-user"></i> Cliente <kbd>F6</kbd>
+            </a>
+            <a href="{% url 'cash_movement' %}" class="btn btn-outline-secondary">
+                <i class="fa fa-exchange-alt"></i> Movs Caja <kbd>F8</kbd>
+            </a>
+            <button class="btn btn-outline-dark" id="btn-ventas-dev" disabled title="Función en desarrollo">
+                <i class="fa fa-file-invoice"></i> Ventas Dev <kbd>F12</kbd>
+            </button>
+        </div>
+        <div style="flex:1; text-align:right;">
+            <button id="btn-cobrar" class="btn btn-success btn-lg px-2"
                 {% if not total > 0 %}disabled{% endif %}>
-                <i class="fa fa-cash-register"></i> Cobrar
+                    <i class="fa fa-cash-register"></i> Cobrar <kbd>F10</kbd>
             </button>
         </div>
     </div>
@@ -313,6 +327,46 @@ document.addEventListener('DOMContentLoaded', function () {
     let pendingZeroUpdate = null;
     let posTotal = {{ total|default:0 }};
 
+    // Web Audio API
+    /* Beep corto y tímido
+    function playBeep() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(ctx.destination);
+            oscillator.type = 'square';
+            oscillator.frequency.setValueAtTime(1800, ctx.currentTime);
+            gainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+            oscillator.start(ctx.currentTime);
+            oscillator.stop(ctx.currentTime + 0.1);
+        } catch(e) {
+            console.log('Audio no disponible:', e);
+        }
+    } */
+    
+    function playBeep() {
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = ctx.createOscillator();
+            const gainNode = ctx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(ctx.destination);
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(2400, ctx.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(1800, ctx.currentTime + 0.08);
+            gainNode.gain.setValueAtTime(0.4, ctx.currentTime);
+            gainNode.gain.setValueAtTime(0.4, ctx.currentTime + 0.12);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+            oscillator.start(ctx.currentTime);
+            oscillator.stop(ctx.currentTime + 0.22);
+        } catch(e) {
+            console.log('Audio no disponible:', e);
+        }
+    }
+
     // ── Helpers de estado de botones (igual que ecart) ──────────────────
     function setMinusState(minusBtn, qty) {
         if (!minusBtn) return;
@@ -370,6 +424,7 @@ document.addEventListener('DOMContentLoaded', function () {
         .then(r => r.json())
         .then(data => {
             if (data.status === 'ok') {
+                playBeep(); // ← aquí
                 updateCartUI(row, data);
             } else if (data.available_stock !== undefined) {
                 document.getElementById('stockModalBody').textContent = data.message;
@@ -433,59 +488,97 @@ document.addEventListener('DOMContentLoaded', function () {
         $('#confirmZeroModal').modal('hide');
     });
 
-    // ── Búsqueda de productos ────────────────────────────────────────────
-    const searchInput   = document.getElementById('pos-search');
-    const searchResults = document.getElementById('pos-search-results');
-    let searchTimer = null;
+// ── Búsqueda de productos con navegación por teclado 4Ago 2026─────────
+const searchInput   = document.getElementById('pos-search');
+const searchResults = document.getElementById('pos-search-results');
+let searchTimer = null;
+let searchActiveIndex = -1;
 
-    searchInput.addEventListener('input', function () {
-        clearTimeout(searchTimer);
-        const term = this.value.trim();
-        if (term.length < 2) { searchResults.style.display = 'none'; return; }
-        searchTimer = setTimeout(() => {
-            fetch(`{% url "pos_search_product" %}?q=${encodeURIComponent(term)}`, {
-                headers: { 'X-CSRFToken': getCookie('csrftoken') }
-            })
-            .then(r => r.json())
-            .then(data => {
-                searchResults.innerHTML = '';
-                if (data.products.length === 0) {
-                    searchResults.innerHTML = '<div class="p-2 text-muted">Sin resultados</div>';
-                } else {
-                    data.products.forEach(p => {
-                        const item = document.createElement('div');
-                        item.className = 'p-2 border-bottom';
-                        item.style.cursor = 'pointer';
-                        item.innerHTML = `
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>${p.name}</strong>
-                                    <small class="text-muted ml-2">${p.sku || ''}</small><br>
-                                    <small class="text-muted">${p.barcode || ''}</small>
-                                </div>
-                                <div class="text-right">
-                                    <span class="text-primary font-weight-bold">$${fmt(p.price)}</span><br>
-                                    <small class="text-muted">Stock: ${p.stock}</small>
-                                </div>
-                            </div>`;
-                        item.addEventListener('mouseenter', () => item.style.background = '#f0f0f0');
-                        item.addEventListener('mouseleave', () => item.style.background = '');
-                        item.addEventListener('click', () => addProductToCart(p));
-                        searchResults.appendChild(item);
+searchInput.addEventListener('input', function () {
+    clearTimeout(searchTimer);
+    searchActiveIndex = -1;
+    const term = this.value.trim();
+    if (term.length < 2) { searchResults.style.display = 'none'; return; }
+    searchTimer = setTimeout(() => {
+        fetch(`{% url "pos_search_product" %}?q=${encodeURIComponent(term)}`, {
+            headers: { 'X-CSRFToken': getCookie('csrftoken') }
+        })
+        .then(r => r.json())
+        .then(data => {
+            searchResults.innerHTML = '';
+            searchActiveIndex = -1;
+            if (data.products.length === 0) {
+                searchResults.innerHTML = '<div class="p-2 text-muted">Sin resultados</div>';
+            } else {
+                data.products.forEach((p, idx) => {
+                    const item = document.createElement('div');
+                    item.className = 'p-2 border-bottom search-result-item';
+                    item.setAttribute('data-index', idx);
+                    item.style.cursor = 'pointer';
+                    item.innerHTML = `
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${p.name}</strong>
+                                <small class="text-muted ml-2">${p.sku || ''}</small><br>
+                                <small class="text-muted">${p.barcode || ''}</small>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-primary font-weight-bold">$${fmt(p.price)}</span><br>
+                                <small class="text-muted">Stock: ${p.stock}</small>
+                            </div>
+                        </div>`;
+                    item.addEventListener('mouseenter', () => {
+                        clearSearchHighlight();
+                        item.style.background = '#f0f0f0';
+                        searchActiveIndex = idx;
                     });
-                }
-                searchResults.style.display = 'block';
-            })
-            .catch(e => console.error('Error búsqueda:', e));
-        }, 300);
-    });
+                    item.addEventListener('mouseleave', () => item.style.background = '');
+                    item.addEventListener('click', () => addProductToCart(p));
+                    searchResults.appendChild(item);
+                });
+            }
+            searchResults.style.display = 'block';
+        })
+        .catch(e => console.error('Error búsqueda:', e));
+    }, 300);
+});
 
-    // Cerrar dropdown al hacer clic fuera
-    document.addEventListener('click', function (e) {
-        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
-            searchResults.style.display = 'none';
+searchInput.addEventListener('keydown', function(e) {
+    const items = searchResults.querySelectorAll('.search-result-item');
+    if (!items.length) return;
+    if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        searchActiveIndex = Math.min(searchActiveIndex + 1, items.length - 1);
+        highlightSearchItem(items);
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        searchActiveIndex = Math.max(searchActiveIndex - 1, 0);
+        highlightSearchItem(items);
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (searchActiveIndex >= 0 && items[searchActiveIndex]) {
+            items[searchActiveIndex].click();
         }
-    });
+    }
+});
+
+function highlightSearchItem(items) {
+    clearSearchHighlight();
+    if (items[searchActiveIndex]) {
+        items[searchActiveIndex].style.background = '#cce5ff';
+        items[searchActiveIndex].scrollIntoView({ block: 'nearest' });
+    }
+}
+function clearSearchHighlight() {
+    searchResults.querySelectorAll('.search-result-item').forEach(i => i.style.background = '');
+}
+
+// Cerrar dropdown al hacer clic fuera
+document.addEventListener('click', function (e) {
+    if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+        searchResults.style.display = 'none';
+    }
+});
 
     // Agregar producto al carrito desde el dropdown
 function addProductToCart(product) {
@@ -497,6 +590,7 @@ function addProductToCart(product) {
     .then(r => r.json())
     .then(data => {
         if (data.status === 'ok') {
+            playBeep(); // ← aquí
             searchInput.value = '';
             searchResults.style.display = 'none';
 
@@ -642,68 +736,128 @@ function bindRowEvents(row) {
     });
 }
 
-    // ── Búsqueda de clientes ─────────────────────────────────────────────
-    const customerSearch   = document.getElementById('pos-customer-search');
-    const customerResults  = document.getElementById('pos-customer-results');
-    const customerSelected = document.getElementById('pos-customer-selected');
-    const customerName     = document.getElementById('pos-customer-name');
-    const customerId       = document.getElementById('pos-customer-id');
-    let customerTimer = null;
+// ── Búsqueda de clientes con navegación por teclado ──────────
+const customerSearch   = document.getElementById('pos-customer-search');
+const customerResults  = document.getElementById('pos-customer-results');
+const customerSelected = document.getElementById('pos-customer-selected');
+const customerName     = document.getElementById('pos-customer-name');
+const customerId       = document.getElementById('pos-customer-id');
+let customerTimer = null;
+let customerActiveIndex = -1;
 
-    customerSearch.addEventListener('input', function () {
-        clearTimeout(customerTimer);
-        const term = this.value.trim();
-        if (term.length < 2) { customerResults.style.display = 'none'; return; }
-        customerTimer = setTimeout(() => {
-            fetch(`{% url "pos_search_customer" %}?q=${encodeURIComponent(term)}`, {
-                headers: { 'X-CSRFToken': getCookie('csrftoken') }
-            })
-            .then(r => r.json())
-            .then(data => {
-                customerResults.innerHTML = '';
-                if (data.customers.length === 0) {
-                    customerResults.innerHTML = '<div class="p-2 text-muted">Sin resultados</div>';
-                } else {
-                    data.customers.forEach(c => {
-                        const item = document.createElement('div');
-                        item.className = 'p-2 border-bottom';
-                        item.style.cursor = 'pointer';
-                        item.innerHTML = `<strong>${c.name}</strong> <small class="text-muted">${c.phone || ''}</small>`;
-                        item.addEventListener('mouseenter', () => item.style.background = '#f0f0f0');
-                        item.addEventListener('mouseleave', () => item.style.background = '');
-                        item.addEventListener('click', () => {
-                            customerId.value = c.id;
-                            customerName.textContent = c.name;
-                            customerSearch.style.display = 'none';
-                            customerSelected.style.display = 'block';
-                            customerResults.style.display = 'none';
-                        });
-                        customerResults.appendChild(item);
+customerSearch.addEventListener('input', function () {
+    clearTimeout(customerTimer);
+    customerActiveIndex = -1;
+    const term = this.value.trim();
+    if (term.length < 2) { customerResults.style.display = 'none'; return; }
+    customerTimer = setTimeout(() => {
+        fetch(`{% url "pos_search_customer" %}?q=${encodeURIComponent(term)}`, {
+            headers: { 'X-CSRFToken': getCookie('csrftoken') }
+        })
+        .then(r => r.json())
+        .then(data => {
+            customerResults.innerHTML = '';
+            customerActiveIndex = -1;
+            if (data.customers.length === 0) {
+                customerResults.innerHTML = '<div class="p-2 text-muted">Sin resultados</div>';
+            } else {
+                data.customers.forEach((c, idx) => {
+                    const item = document.createElement('div');
+                    item.className = 'p-2 border-bottom customer-result-item';
+                    item.setAttribute('data-index', idx);
+                    item.style.cursor = 'pointer';
+                    item.innerHTML = `<strong>${c.name}</strong> <small class="text-muted">${c.phone || ''}</small>`;
+                    item.addEventListener('mouseenter', () => {
+                        clearCustomerHighlight();
+                        item.style.background = '#f0f0f0';
+                        customerActiveIndex = idx;
                     });
-                }
-                customerResults.style.display = 'block';
-            })
-            .catch(e => console.error('Error búsqueda cliente:', e));
-        }, 300);
-    });
+                    item.addEventListener('mouseleave', () => item.style.background = '');
+                    item.addEventListener('click', () => {
+                        customerId.value = c.id;
+                        customerName.textContent = c.name;
+                        customerSearch.style.display = 'none';
+                        customerSelected.style.display = 'block';
+                        customerResults.style.display = 'none';
+                        customerActiveIndex = -1;
+                    });
+                    customerResults.appendChild(item);
+                });
+            }
+            customerResults.style.display = 'block';
+        })
+        .catch(e => console.error('Error búsqueda cliente:', e));
+    }, 300);
+});
 
-    document.getElementById('pos-customer-clear').addEventListener('click', function (e) {
+customerSearch.addEventListener('keydown', function(e) {
+    const items = customerResults.querySelectorAll('.customer-result-item');
+    if (!items.length) return;
+    if (e.key === 'ArrowDown') {
         e.preventDefault();
-        customerId.value = '';
-        customerName.textContent = '';
-        customerSearch.value = '';
-        customerSearch.style.display = '';
-        customerSelected.style.display = 'none';
-    });
-
-    document.addEventListener('click', function (e) {
-        if (!customerSearch.contains(e.target) && !customerResults.contains(e.target)) {
-            customerResults.style.display = 'none';
+        customerActiveIndex = Math.min(customerActiveIndex + 1, items.length - 1);
+        highlightCustomerItem(items);
+    } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        customerActiveIndex = Math.max(customerActiveIndex - 1, 0);
+        highlightCustomerItem(items);
+    } else if (e.key === 'Enter') {
+        e.preventDefault();
+        if (customerActiveIndex >= 0 && items[customerActiveIndex]) {
+            items[customerActiveIndex].click();
         }
-    });
+    }
+});
 
-    // ── Modal de cobro ───────────────────────────────────────────────────
-    document.getElementById('btn-cobrar').addEventListener('click', function () {
+function highlightCustomerItem(items) {
+    clearCustomerHighlight();
+    if (items[customerActiveIndex]) {
+        items[customerActiveIndex].style.background = '#cce5ff';
+        items[customerActiveIndex].scrollIntoView({ block: 'nearest' });
+    }
+}
+function clearCustomerHighlight() {
+    customerResults.querySelectorAll('.customer-result-item').forEach(i => i.style.background = '');
+}
+
+document.getElementById('pos-customer-clear').addEventListener('click', function (e) {
+    e.preventDefault();
+    customerId.value = '';
+    customerName.textContent = '';
+    customerSearch.value = '';
+    customerSearch.style.display = '';
+    customerSelected.style.display = 'none';
+    customerActiveIndex = -1;
+});
+
+document.addEventListener('click', function (e) {
+    if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+        searchResults.style.display = 'none';
+        searchActiveIndex = -1;
+    }
+    if (!customerSearch.contains(e.target) && !customerResults.contains(e.target)) {
+        customerResults.style.display = 'none';
+        customerActiveIndex = -1;
+    }
+});
+
+document.getElementById('pos-customer-clear').addEventListener('click', function (e) {
+    e.preventDefault();
+    customerId.value = '';
+    customerName.textContent = '';
+    customerSearch.value = '';
+    customerSearch.style.display = '';
+    customerSelected.style.display = 'none';
+});
+
+document.addEventListener('click', function (e) {
+    if (!customerSearch.contains(e.target) && !customerResults.contains(e.target)) {
+        customerResults.style.display = 'none';
+    }
+});
+
+// ── Modal de cobro ───────────────────────────────────────────────────
+document.getElementById('btn-cobrar').addEventListener('click', function () {
     document.getElementById('modal-total').textContent = '$' + fmt(posTotal);
     // Prellenar efectivo con el total como sugerencia
     document.getElementById('monto-efectivo').value = fmt(posTotal).replace(',','');
@@ -779,6 +933,50 @@ document.getElementById('btn-confirmar-cobro').addEventListener('click', functio
         }
         return val;
     }
+
+    // ── Shortcuts de teclado ─────────────────────────────────────
+document.addEventListener('keydown', function(e) {
+    // Ignorar si el foco está en un input o textarea
+    const tag = document.activeElement.tagName.toLowerCase();
+    const isInput = tag === 'input' || tag === 'textarea' || tag === 'select';
+
+    switch(e.key) {
+        case 'F10':
+            e.preventDefault();
+            const btnCobrar = document.getElementById('btn-cobrar');
+            if (btnCobrar && !btnCobrar.disabled) {
+                btnCobrar.click();
+            }
+            break;
+        case 'F6':
+            e.preventDefault();
+            const customerSearchInput = document.getElementById('pos-customer-search');
+            if (customerSearchInput) {
+                customerSearchInput.style.display = '';
+                customerSearchInput.focus();
+            }
+            break;
+        case 'F5':
+            // Prevenir recarga accidental del navegador
+            e.preventDefault();
+            document.getElementById('pos-search').focus();
+            break;
+        case 'F8':
+            e.preventDefault();
+            window.location.href = "{% url 'cash_movement' %}";
+            break;
+        case 'F12':
+            e.preventDefault();
+            // Función en desarrollo — por ahora no hace nada
+            break;
+        case 'Escape':
+            // Cerrar dropdowns y regresar foco al buscador de producto
+            document.getElementById('pos-search-results').style.display = 'none';
+            document.getElementById('pos-customer-results').style.display = 'none';
+            document.getElementById('pos-search').focus();
+            break;
+    }
+});
 });
 </script>
 {% endblock content %}
