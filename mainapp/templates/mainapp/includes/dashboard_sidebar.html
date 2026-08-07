@@ -7,6 +7,8 @@
         <a class="list-group-item {% if '/my-orders/' in request.path %}active{% endif %}" href="{% url 'my_orders' %}"> Mis órdenes </a>
         <a class="list-group-item {% if '/pending-orders/' in request.path %}active{% endif %}" href="{% url 'pending_orders' %}"> Órdenes sin pago </a>
         <a class="list-group-item {% if '/cash-movement/' in request.path %}active{% endif %}" href="{% url 'cash_movement' %}"> Entradas y Salidas </a>
+        <a class="list-group-item {% if '/purchase/' in request.path %}active{% endif %}" href="{% url 'my_orders' %}"> Compras </a>
+        <a class="list-group-item {% if '/warehouse/' in request.path %}active{% endif %}" href="{% url 'my_orders' %}"> Inventarios </a>
         <!-- <a class="list-group-item {% if '/edit-profile/' in request.path %}active{% endif %}" href="{% url 'edit_profile' %}"> Mi perfil </a>-->
         <!--<a class="list-group-item {% if '/change-password/' in request.path %}active{% endif %}" href=" {% url 'change_password' %} "> Cambiar contraseña </a>-->
         <!-- <a class="list-group-item {% if '/addresses/' in request.path %}active{% endif %}" href=" {% url 'addresses' %}"> Mis direcciones </a> -->
@@ -15,6 +17,6 @@
         {% endif %}
     </ul>
     <br>
-    <a class="btn btn-info btn-block" href=" {% url "logout" %} "> <i class="fa fa-power-off"></i> <span class="text">Log out</span> </a> 
+    <a class="btn btn-info btn-block" href=" {% url "logout" %} "> <i class="fa fa-power-off"></i> <span class="text">Salir</span> </a> 
     <!--   SIDEBAR .//END   -->
 </aside>

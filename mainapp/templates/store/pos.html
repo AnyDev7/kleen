@@ -31,23 +31,30 @@
                 </div>
                 <input type="text" id="pos-customer-search" class="form-control"
                     placeholder="Buscar cliente..."
-                    autocomplete="off">
+                    autocomplete="off" value="{{ default_customer.name }}">
             </div>
             <div id="pos-customer-results" style="display:none; position:absolute; top:100%; left:0; right:0; z-index:1000; background:#fff; border:1px solid #ddd; border-radius:0 0 4px 4px; max-height:200px; overflow-y:auto; box-shadow:0 4px 8px rgba(0,0,0,.1);">
             </div>
             <!-- Cliente seleccionado -->
             <input type="hidden" id="pos-customer-id" value="">
+
             {% comment "Cambio: SIN cliente MOSTRADOR SELECTED ID=1" %}
             <small id="pos-customer-selected" class="text-success" style="display:none;">
                 <i class="fa fa-check"></i> <span id="pos-customer-name"></span>
                 <a href="#" id="pos-customer-clear" class="text-danger ml-2"><i class="fa fa-times"></i></a>
             </small>
             {% endcomment %}
-            <small id="pos-customer-selected" style="display:block;">
+            
+
+            <!-- Prueba 6Ago 2026 <small id="pos-customer-selected" style="display:block;">-->
+            <small id="pos-customer-selected" style="display:none;">
+                
                 <i class="fa fa-check text-success"></i>
-                <span id="pos-customer-name">{{ default_customer.name }}</span>
+                <span id="pos-customer-name">{{ default_customer.name }} Este valor se muestra</span>
                 <a href="#" id="pos-customer-clear" class="text-danger ml-2"><i class="fa fa-times"></i></a>
-            </small>
+                
+            </small> 
+            
             <input type="hidden" id="pos-customer-id" value="{{ default_customer.id }}">
         </div>
 
@@ -328,6 +335,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let posTotal = {{ total|default:0 }};
 
     // Web Audio API
+
     /* Beep corto y tímido
     function playBeep() {
         try {
@@ -770,24 +778,38 @@ customerSearch.addEventListener('input', function () {
                     item.addEventListener('mouseenter', () => {
                         clearCustomerHighlight();
                         item.style.background = '#f0f0f0';
-                        customerActiveIndex = idx;
+                        customerActiveIndex = idx; 
                     });
                     item.addEventListener('mouseleave', () => item.style.background = '');
+                    /* Clde 4Ago 2026 */
                     item.addEventListener('click', () => {
+                        customerId.value = c.id;
+                        //Agregado 6Ago 2026
+                        customerName.textContent = c.name;
+                        customerSearch.value = c.name; // fin agregado
+                        customerSearch.style.display = 'block';
+                        //Se cambio 6Ago 2026 customerSelected.style.display = 'block';
+                        customerSelected.style.display = 'none'; // para quitar customerSelected en pequeño
+                        customerResults.style.display = 'none';
+                        customerActiveIndex = -1;
+                    });
+                    /* 5Ago 2026 No integrar
+                    item.addEventListener('mousedown', (e) => {
+                        e.preventDefault(); // evita que el input pierda foco antes de registrar la selección
                         customerId.value = c.id;
                         customerName.textContent = c.name;
                         customerSearch.style.display = 'none';
                         customerSelected.style.display = 'block';
                         customerResults.style.display = 'none';
                         customerActiveIndex = -1;
-                    });
+                    });*/
                     customerResults.appendChild(item);
                 });
             }
             customerResults.style.display = 'block';
         })
         .catch(e => console.error('Error búsqueda cliente:', e));
-    }, 300);
+    }, 300);    
 });
 
 customerSearch.addEventListener('keydown', function(e) {
@@ -816,6 +838,7 @@ function highlightCustomerItem(items) {
         items[customerActiveIndex].scrollIntoView({ block: 'nearest' });
     }
 }
+
 function clearCustomerHighlight() {
     customerResults.querySelectorAll('.customer-result-item').forEach(i => i.style.background = '');
 }
@@ -830,31 +853,17 @@ document.getElementById('pos-customer-clear').addEventListener('click', function
     customerActiveIndex = -1;
 });
 
+// Cerrar dropdown al hacer clic fuera
 document.addEventListener('click', function (e) {
-    if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
-        searchResults.style.display = 'none';
-        searchActiveIndex = -1;
-    }
     if (!customerSearch.contains(e.target) && !customerResults.contains(e.target)) {
         customerResults.style.display = 'none';
         customerActiveIndex = -1;
     }
+    // Agregado  6 Ago 2026, devuelve focus a product search
+    document.getElementById('pos-search').focus(); //fin agregado
 });
 
-document.getElementById('pos-customer-clear').addEventListener('click', function (e) {
-    e.preventDefault();
-    customerId.value = '';
-    customerName.textContent = '';
-    customerSearch.value = '';
-    customerSearch.style.display = '';
-    customerSelected.style.display = 'none';
-});
 
-document.addEventListener('click', function (e) {
-    if (!customerSearch.contains(e.target) && !customerResults.contains(e.target)) {
-        customerResults.style.display = 'none';
-    }
-});
 
 // ── Modal de cobro ───────────────────────────────────────────────────
 document.getElementById('btn-cobrar').addEventListener('click', function () {
@@ -952,6 +961,8 @@ document.addEventListener('keydown', function(e) {
             e.preventDefault();
             const customerSearchInput = document.getElementById('pos-customer-search');
             if (customerSearchInput) {
+                //Agregado Prueba 6Ago 2026
+                customerSearchInput.value = ''; //fin agregado
                 customerSearchInput.style.display = '';
                 customerSearchInput.focus();
             }
