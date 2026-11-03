@@ -355,6 +355,9 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     } */
     
+    /*
+    //Prueba 2 Nov 2026
+    //Beep mejor OK
     function playBeep() {
         try {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -373,6 +376,14 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch(e) {
             console.log('Audio no disponible:', e);
         }
+    }*/
+    
+    
+    //Prueba 2 Nov 2026
+    function playBeep() {
+        const audio = new Audio("{% static 'sounds/store-scanner-beep.mp3' %}");
+        audio.volume = 1.0;
+        audio.play().catch(e => console.log('Audio no disponible:', e));
     }
 
     // ── Helpers de estado de botones (igual que ecart) ──────────────────
@@ -860,7 +871,7 @@ document.addEventListener('click', function (e) {
         customerActiveIndex = -1;
     }
     // Agregado  6 Ago 2026, devuelve focus a product search
-    //document.getElementById('pos-search').focus(); //fin agregado
+    //document.getElementById('pos-search').focus(); //Se quitó 2 Nov 2026 genera fallo  //fin agregado
 });
 
 
