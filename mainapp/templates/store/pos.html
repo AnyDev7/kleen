@@ -175,10 +175,10 @@
         </div>
 
         <div style="flex:4; text-align:right; display:flex; gap:8px; justify-content:flex-end; align-items:center;">
-            <a href="#" class="btn btn-outline-secondary">
+            <a href="#" class="btn btn-outline-secondary" >
                 <i class="fa-solid fa-shirt"></i> Producto <kbd>F5</kbd>
             </a>
-            <a href="#" class="btn btn-outline-secondary">
+            <a href="#" class="btn btn-outline-secondary" >
                 <i class="fa fa-user"></i> Cliente <kbd>F6</kbd>
             </a>
             <a href="{% url 'cash_movement' %}" class="btn btn-outline-secondary">
@@ -288,7 +288,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-                <a id="btn-confirmar-cobro" href="#" class="btn btn-success btn-lg">
+                <a id="btn-confirmar-cobro" href="#" class="btn btn-success btn-lg" autofocus>
                     <i class="fa fa-check"></i> Confirmar cobro
                 </a>
             </div>
@@ -860,7 +860,7 @@ document.addEventListener('click', function (e) {
         customerActiveIndex = -1;
     }
     // Agregado  6 Ago 2026, devuelve focus a product search
-    document.getElementById('pos-search').focus(); //fin agregado
+    //document.getElementById('pos-search').focus(); //fin agregado
 });
 
 
